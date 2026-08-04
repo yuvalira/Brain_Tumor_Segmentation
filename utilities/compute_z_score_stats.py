@@ -1,14 +1,14 @@
 import os
 import h5py
 import numpy as np
-from config_parameters import *
+from pathlib import Path
+
 
 
 def compute_dataset_volume_stats(
     dataset_base_path,
     total_volumes=369,
     total_slices=155,
-    save_dir=PARAMS_OUTPUT_PATH,
 ):
     """Pre-computes, saves, and returns arrays of shape (total_volumes + 1, 4)
 
@@ -22,6 +22,7 @@ def compute_dataset_volume_stats(
     volume_stds = np.ones((total_volumes + 1, 4), dtype=np.float64)
 
     for vol_num in range(1, total_volumes + 1):
+        print(f"volume: {vol_num}/369")
         running_count = 0
         running_sum = np.zeros(4, dtype=np.float64)
         running_sum_sq = np.zeros(4, dtype=np.float64)
@@ -60,19 +61,20 @@ def compute_dataset_volume_stats(
         if vol_num % 50 == 0 or vol_num == total_volumes:
             print(f"  Calculated volume stats: {vol_num}/{total_volumes}...")
 
-    # Ensure output directory exists before saving
-    os.makedirs(save_dir, exist_ok=True)
+    # Set directory to where THIS .py script file is located
+    save_dir = Path(__file__).resolve().parent
+    save_dir.mkdir(parents=True, exist_ok=True)
 
     # Save finalized statistics to disk
-    np.save(os.path.join(save_dir, "volume_means.npy"), volume_means)
-    np.save(os.path.join(save_dir, "volume_stds.npy"), volume_stds)
+    np.save(save_dir / "volume_means.npy", volume_means)
+    np.save(save_dir / "volume_stds.npy", volume_stds)
 
     print(
-        f"Volume statistics successfully saved to '{os.path.abspath(save_dir)}'!"
+        f"Volume statistics successfully saved'!"
     )
 
     return volume_means, volume_stds
 
 
 if __name__ == "__main__":
-    compute_dataset_volume_stats(DATASET_PATH)
+    compute_dataset_volume_stats(f'MRI_2026_datasets/Brats/BraTS2020_training_data/content/data')

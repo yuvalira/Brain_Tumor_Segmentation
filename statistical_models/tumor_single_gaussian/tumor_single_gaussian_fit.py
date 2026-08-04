@@ -1,21 +1,25 @@
 import os
 import numpy as np
-
-from utils import load_and_normalize_slice
-from config_parameters import *
 from pathlib import Path
+import sys
+
+
+# Add project root ('Brain_Tumor_Segmentation') to sys.path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
+
+# Now your import will resolve cleanly!
+from utilities.utils import load_and_normalize_slice
+from config_parameters import *
+
 
 
 def estimate_tumor_parameters(
-    dataset_base_path,
-    volume_means,
-    volume_stds,
     max_train_vol=MAX_TRAINING_VOLUME,
     total_slices=MAX_SLICE + 1,
     output_path=os.path.join(
         PARAMS_OUTPUT_PATH,
-        "tumor_gaussian_parameters.npz",
     ),
 ):
     """
@@ -52,7 +56,7 @@ def estimate_tumor_parameters(
     )
 
     for vol_num in range(1, max_train_vol + 1):
-
+        print(f'volume: {vol_num}/{MAX_TRAINING_VOLUME}')
         for slice_num in range(total_slices):
 
             (
@@ -60,11 +64,8 @@ def estimate_tumor_parameters(
                 brain_mask,
                 mask_slice,
             ) = load_and_normalize_slice(
-                dataset_base_path,
                 vol_num,
                 slice_num,
-                volume_means,
-                volume_stds,
             )
 
             if not np.any(brain_mask):
@@ -140,13 +141,9 @@ def estimate_tumor_parameters(
             - np.outer(mu, mu)
         )
 
-    os.makedirs(
-        os.path.dirname(output_path),
-        exist_ok=True,
-    )
 
     np.savez(
-        output_path,
+        f'Brain_Tumor_Segmentation/statistical_models/tumor_single_gaussian/tumor_single_gaussian_parameters.npz',
 
         priors=tumor_priors,
 
@@ -205,30 +202,11 @@ def estimate_tumor_parameters(
 
 if __name__ == "__main__":
 
-    from pathlib import Path
-    from utils import load_volume_stats
-
-    PROJECT_ROOT = Path(__file__).resolve().parents[2]
-
-    stats_path = PROJECT_ROOT / PARAMS_OUTPUT_PATH
-    dataset_path = PROJECT_ROOT / DATASET_PATH
-    output_path = stats_path / "tumor_gaussian_parameters.npz"
-
-    print("Project root:", PROJECT_ROOT)
-    print("Statistics path:", stats_path)
-    print("Dataset path:", dataset_path)
-    print("Dataset exists:", dataset_path.exists())
-
-    volume_means, volume_stds = load_volume_stats(stats_path)
 
     tumor_priors, tumor_means, tumor_covariances = (
         estimate_tumor_parameters(
-            dataset_base_path=dataset_path,
-            volume_means=volume_means,
-            volume_stds=volume_stds,
             max_train_vol=MAX_TRAINING_VOLUME,
             total_slices=MAX_SLICE + 1,
-            output_path=output_path,
         )
     )
 

@@ -1,23 +1,24 @@
 import os
 import numpy as np
 from pathlib import Path
+import sys
 
-from config_parameters import *
-from utils import load_and_normalize_slice
 
+# Add project root ('Brain_Tumor_Segmentation') to sys.path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.append(str(PROJECT_ROOT))
+
+# Now your import will resolve cleanly!
+from utilities.utils import load_and_normalize_slice
+from config_parameters import *
+
 
 
 def estimate_healthy_gaussian_parameters(
-    dataset_base_path,
-    volume_means,
-    volume_stds,
+    dataset_base_path='MRI_2026_datasets/Brats/BraTS2020_training_data',
     max_train_vol=MAX_TRAINING_VOLUME,
     total_slices=MAX_SLICE + 1,
-    output_path=os.path.join(
-        PARAMS_OUTPUT_PATH,
-        "healthy_single_gaussian_parameters.npz",
-    ),
 ):
     """Estimates single multivariate Gaussian parameters (mean, covariance)
 
@@ -36,17 +37,15 @@ def estimate_healthy_gaussian_parameters(
     running_sum_squares = np.zeros((num_dims, num_dims), dtype=np.float64)
 
     for vol_num in range(1, max_train_vol + 1):
+        print(f'volume: {vol_num}/{MAX_TRAINING_VOLUME}')
         for slice_num in range(total_slices):
             (
                 norm_slice,
                 brain_mask,
                 mask_slice,
             ) = load_and_normalize_slice(
-                dataset_base_path,
                 vol_num,
-                slice_num,
-                volume_means,
-                volume_stds,
+                slice_num
             )
 
             if not np.any(brain_mask):
@@ -84,10 +83,9 @@ def estimate_healthy_gaussian_parameters(
         running_sum_squares / float(running_healthy_count)
     ) - np.outer(healthy_mean, healthy_mean)
 
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
     np.savez(
-        output_path,
+        "Brain_Tumor_Segmentation/statistical_models/healthy_single_gaussian/healthy_single_gaussian_parameters.npz",
         healthy_prior=healthy_prior,
         healthy_mean=healthy_mean,
         healthy_covariance=healthy_covariance,
@@ -97,8 +95,6 @@ def estimate_healthy_gaussian_parameters(
     )
 
     print("\nHealthy Gaussian parameters saved to:")
-    print(output_path)
-
     print("\nHealthy Class Summary")
     print("-----------------------------------")
     print(f"Healthy Voxels     : {running_healthy_count:,}")
@@ -110,30 +106,11 @@ def estimate_healthy_gaussian_parameters(
 
 
 if __name__ == "__main__":
-    from pathlib import Path
-    from utils import load_volume_stats
-
-    PROJECT_ROOT = Path(__file__).resolve().parents[2]
-
-    stats_path = PROJECT_ROOT / PARAMS_OUTPUT_PATH
-    dataset_path = PROJECT_ROOT / DATASET_PATH
-    output_path = stats_path / "healthy_single_gaussian_parameters.npz"
-
-    print("Project root:", PROJECT_ROOT)
-    print("Statistics path:", stats_path)
-    print("Dataset path:", dataset_path)
-    print("Dataset exists:", dataset_path.exists())
-
-    volume_means, volume_stds = load_volume_stats(stats_path)
 
     healthy_prior, healthy_mean, healthy_covariance = (
         estimate_healthy_gaussian_parameters(
-            dataset_base_path=dataset_path,
-            volume_means=volume_means,
-            volume_stds=volume_stds,
             max_train_vol=MAX_TRAINING_VOLUME,
             total_slices=MAX_SLICE + 1,
-            output_path=output_path,
         )
     )
 
