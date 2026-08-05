@@ -8,6 +8,9 @@ from statistical_models.healthy_single_gaussian.healthy_single_gaussian_posterio
 from statistical_models.tumor_single_skew_t.tumor_single_skew_t_posterior import tumor_single_skew_t_stat_inference
 from statistical_models.healthy_single_skew_t.healthy_single_skew_t_posterior import healthy_single_skew_t_stat_inference
 
+from statistical_models.healthy_gmm.healthy_gmm_posterior import (healthy_gmm_stat_inference,)
+from statistical_models.tumor_gmm.tumor_gmm_posterior import (tumor_gmm_stat_inference,)
+
 from image_processing.visualizations          import visualize_probability, visualize_entropy, visualize_sobel_edges, visualize_contours, visualize_expansion, visualize_segmentation
 from image_processing.compute_entropy         import compute_entropy
 from image_processing.edge_detection          import sobel_edge_detection
@@ -41,9 +44,9 @@ def eval_vol(vol_num):
         if MODEL == "skew_t":
             healthy_probabilities = healthy_single_skew_t_stat_inference(slice_im, brain_mask)  # Shape: (H, W, K_healthy)
             tumor_probabilities   = tumor_single_skew_t_stat_inference  (slice_im, brain_mask)  # Shape: (H, W, K_tumor)
-        # if MODEL == "gmm":
-        #     healthy_probabilities = #
-        #     tumor_probabilities   = #
+        if MODEL == "gmm":
+            healthy_probabilities = healthy_gmm_stat_inference(slice_im, brain_mask)
+            tumor_probabilities = tumor_gmm_stat_inference(slice_im, brain_mask)
         stacked_probabilities = np.dstack([healthy_probabilities, tumor_probabilities])
         total_evidence        = np.sum(stacked_probabilities, axis=-1, keepdims=True)
         posteriors            = np.divide(
