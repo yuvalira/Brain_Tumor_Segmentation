@@ -5,6 +5,14 @@ import numpy as np
 from statistical_models.tumor_single_gaussian.tumor_single_gaussian_posterior import tumor_single_gaussian_stat_inference
 from statistical_models.healthy_single_gaussian.healthy_single_gaussian_posterior import healthy_single_gaussian_stat_inference
 
+from statistical_models.healthy_single_skew_t.healthy_single_skew_t_posterior import (
+    healthy_single_skew_t_stat_inference,
+)
+
+from statistical_models.tumor_single_skew_t.tumor_single_skew_t_posterior import (
+    tumor_single_skew_t_stat_inference,
+)
+
 from image_processing.visualizations          import visualize_probability,visualize_entropy,visualize_sobel_edges, visualize_contours, visualize_expansion, visualize_segmentation
 from image_processing.compute_entropy         import compute_entropy
 from image_processing.edge_detection          import sobel_edge_detection
@@ -37,12 +45,18 @@ if __name__ == "__main__":
 
 
     # compute full posterior map
-    healthy_probabilities = healthy_single_gaussian_stat_inference(slice_im, brain_mask)  # Shape: (H, W, K_healthy)
-    tumor_probabilities   = tumor_single_gaussian_stat_inference  (slice_im, brain_mask)  # Shape: (H, W, K_tumor)
-    stacked_probabilities = np.dstack([healthy_probabilities, tumor_probabilities])
-    total_evidence        = np.sum(stacked_probabilities, axis=-1, keepdims=True)
-    posteriors            = np.divide(stacked_probabilities,total_evidence,out=np.zeros_like(stacked_probabilities),where=total_evidence > 0)
+    # GAUSSIAN
+    #healthy_probabilities = healthy_single_gaussian_stat_inference(slice_im, brain_mask)  # Shape: (H, W, K_healthy)
+    #tumor_probabilities   = tumor_single_gaussian_stat_inference  (slice_im, brain_mask)  # Shape: (H, W, K_tumor)
+    #stacked_probabilities = np.dstack([healthy_probabilities, tumor_probabilities])
+    #total_evidence        = np.sum(stacked_probabilities, axis=-1, keepdims=True)
+    #posteriors            = np.divide(stacked_probabilities,total_evidence,out=np.zeros_like(stacked_probabilities),where=total_evidence > 0)
 
+    healthy_probabilities = (healthy_single_skew_t_stat_inference(slice_im, brain_mask,))
+    tumor_probabilities = (tumor_single_skew_t_stat_inference(slice_im, brain_mask,))
+    stacked_probabilities = np.dstack([healthy_probabilities,tumor_probabilities,])
+    total_evidence = np.sum(stacked_probabilities, axis=-1, keepdims=True,)
+    posteriors = np.divide(stacked_probabilities, total_evidence, out=np.zeros_like(stacked_probabilities),where=total_evidence > 0,)
 
     entropy_map                       = compute_entropy(posteriors,brain_mask)
     sobel_map                         = sobel_edge_detection(posteriors,brain_mask)

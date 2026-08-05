@@ -165,7 +165,6 @@ def multivariate_skew_t_logpdf(
         loc=location,
         shape=dispersion,
         df=degrees_of_freedom,
-        allow_singular=False,
     )
 
     # Skewness correction:
