@@ -7,8 +7,14 @@ def contour_detection(
     sobel_map: np.ndarray,
     brain_mask: np.ndarray = None,
     min_pixels_per_blob: int = MIN_NUM_PIXELS_PER_BLOB_DEFAULT,
+    allow_internal: bool = True,
 ) -> np.ndarray:
-    """Binarizes Sobel map, seals edges, and extracts closed outer binary blob channels."""
+    """Binarizes Sobel map, seals edges, and extracts closed binary blob channels.
+
+    Args:
+        allow_internal: If True, uses RETR_TREE to extract both outer and nested
+            internal contours. If False, uses RETR_EXTERNAL for outer boundaries only.
+    """
     sobel_work = sobel_map.copy()
 
     # 1. Mask out background and erode brain mask slightly to remove outer skull boundary
@@ -37,9 +43,11 @@ def contour_detection(
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
     sealed_edges = cv2.morphologyEx(binary_edges, cv2.MORPH_CLOSE, kernel)
 
-    # 4. Use RETR_EXTERNAL to retrieve ONLY outer boundaries (ignores internal nested contours)
+    # 4. Select contour retrieval mode based on allow_internal flag
+    retrieval_mode = cv2.RETR_TREE if allow_internal else cv2.RETR_EXTERNAL
+
     contours, _ = cv2.findContours(
-        sealed_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
+        sealed_edges, retrieval_mode, cv2.CHAIN_APPROX_SIMPLE
     )
 
     valid_blobs = []

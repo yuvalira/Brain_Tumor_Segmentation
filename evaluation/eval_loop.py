@@ -5,6 +5,9 @@ import numpy as np
 from statistical_models.tumor_single_gaussian.tumor_single_gaussian_posterior import tumor_single_gaussian_stat_inference
 from statistical_models.healthy_single_gaussian.healthy_single_gaussian_posterior import healthy_single_gaussian_stat_inference
 
+from statistical_models.tumor_single_skew_t.tumor_single_skew_t_posterior import tumor_single_skew_t_stat_inference
+from statistical_models.healthy_single_skew_t.healthy_single_skew_t_posterior import healthy_single_skew_t_stat_inference
+
 from image_processing.visualizations          import visualize_probability, visualize_entropy, visualize_sobel_edges, visualize_contours, visualize_expansion, visualize_segmentation
 from image_processing.compute_entropy         import compute_entropy
 from image_processing.edge_detection          import sobel_edge_detection
@@ -13,6 +16,7 @@ from image_processing.contour_classification  import contour_classification
 from image_processing.seed_expansion          import expansion_loop
 
 from utilities.utils import load_and_normalize_slice
+from config_parameters import *
 
 
 def eval_vol(vol_num):
@@ -27,14 +31,19 @@ def eval_vol(vol_num):
 
     for slice_num in range(num_slices_per_volume):
 
-        print(f'slice: {slice_num}/{num_slices_per_volume}')
-
         # Load slice
-        norm_slice, brain_mask, mask = load_and_normalize_slice(vol_num, slice_num)
+        slice_im, brain_mask, mask = load_and_normalize_slice(vol_num, slice_num)
 
         # Perform inference (pass norm_slice)
-        healthy_probabilities = healthy_single_gaussian_stat_inference(norm_slice, brain_mask)
-        tumor_probabilities   = tumor_single_gaussian_stat_inference(norm_slice, brain_mask)
+        if MODEL == "gaussian":
+            healthy_probabilities = healthy_single_gaussian_stat_inference(slice_im, brain_mask)  # Shape: (H, W, K_healthy)
+            tumor_probabilities   = tumor_single_gaussian_stat_inference  (slice_im, brain_mask)  # Shape: (H, W, K_tumor)
+        if MODEL == "skew_t":
+            healthy_probabilities = healthy_single_skew_t_stat_inference(slice_im, brain_mask)  # Shape: (H, W, K_healthy)
+            tumor_probabilities   = tumor_single_skew_t_stat_inference  (slice_im, brain_mask)  # Shape: (H, W, K_tumor)
+        # if MODEL == "gmm":
+        #     healthy_probabilities = #
+        #     tumor_probabilities   = #
         stacked_probabilities = np.dstack([healthy_probabilities, tumor_probabilities])
         total_evidence        = np.sum(stacked_probabilities, axis=-1, keepdims=True)
         posteriors            = np.divide(
@@ -79,5 +88,64 @@ def eval_vol(vol_num):
     dice = (2.0 * total_intersection) / (total_pred + total_gt + 1e-12)
     iou  = total_intersection / (total_union + 1e-12)
 
-    print(f'Dice: {dice}, IOU: {iou}')
-    return float(dice), float(iou)
+    print(f'Dice: {dice:.3f}, IOU: {iou:.3f}\n')
+
+    return float(dice), float(iou), total_intersection, total_union, total_pred, total_gt
+
+
+def eval_dataset(output_directory = 'Brain_Tumor_Segmentation/metrics',model_name=MODEL):
+
+    num_of_volumes = TOTAL_VOLUMES - MAX_TRAINING_VOLUME
+
+    dice_scores = np.zeros(num_of_volumes, dtype=np.float64)
+    iou_scores = np.zeros(num_of_volumes, dtype=np.float64)
+
+    pred_AND_gt_count = 0
+    pred_OR_gt_count  = 0
+    pred_count        = 0
+    gt_count          = 0
+
+    for vol_num in range(MAX_TRAINING_VOLUME + 1 , TOTAL_VOLUMES + 1):
+
+        print(f'Evaluating Volume No {vol_num}     ({vol_num - MAX_TRAINING_VOLUME}/{num_of_volumes})\n')
+
+        dice, iou, total_intersection, total_union, total_pred, total_gt = eval_vol(vol_num)
+        
+        pred_AND_gt_count += total_intersection
+        pred_OR_gt_count  += total_union
+        pred_count        += total_pred
+        gt_count          += total_gt
+
+        dice_scores[vol_num - MAX_TRAINING_VOLUME - 1] = dice
+        iou_scores [vol_num - MAX_TRAINING_VOLUME - 1] = iou
+
+    # Dataset metrics calculation
+    dataset_dice = (2.0 * pred_AND_gt_count) / (pred_count + gt_count + 1e-12)
+    dataset_iou  = pred_AND_gt_count / (pred_OR_gt_count + 1e-12)
+
+    # Ensure save directory exists
+    save_dir = Path(output_directory)
+    save_dir.mkdir(parents=True, exist_ok=True)
+    
+    save_path = save_dir / f"{model_name}_metrics.npz"
+
+    np.savez(
+    save_path,
+    model=np.array(MODEL),
+    dataset_dice = dataset_dice,
+    dataset_iou = dataset_iou,
+    dice_per_volume = dice_scores,
+    iou_per_volume = iou_scores,
+    total_intersection = pred_AND_gt_count,
+    total_union = pred_OR_gt_count,
+    total_pred = pred_count,
+    total_gt = gt_count,
+    )
+
+    print("\n==========================================")
+    print(f"Dataset Evaluation Complete ({model_name})")
+    print(f"Dataset Overall Dice : {dataset_dice:.4f}")
+    print(f"Dataset Overall IoU  : {dataset_iou:.4f}")
+    print(f"Metrics saved to     : {save_path}")
+    print("==========================================")
+
