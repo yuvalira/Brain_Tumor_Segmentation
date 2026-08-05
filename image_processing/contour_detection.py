@@ -1,11 +1,12 @@
 import cv2
 import numpy as np
+from config_parameters import *
 
 
 def contour_detection(
     sobel_map: np.ndarray,
     brain_mask: np.ndarray = None,
-    min_pixels_per_blob: int = 150,
+    min_pixels_per_blob: int = MIN_NUM_PIXELS_PER_BLOB_DEFAULT,
 ) -> np.ndarray:
     """Binarizes Sobel map, seals edges, and extracts closed outer binary blob channels."""
     sobel_work = sobel_map.copy()
@@ -27,7 +28,7 @@ def contour_detection(
         norm_edges, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
     )
 
-    target_thresh = otsu_val * 0.7
+    target_thresh = otsu_val * SOBEL_BINARIZATION_OTSU_FACTOR
     thresh_used, binary_edges = cv2.threshold(
         norm_edges, target_thresh, 255, cv2.THRESH_BINARY
     )

@@ -1,6 +1,8 @@
 from collections import deque
 import cv2
 import numpy as np
+from config_parameters import *
+
 
 
 def ambiguious_space_expansion(
@@ -8,12 +10,12 @@ def ambiguious_space_expansion(
     entropy_map: np.ndarray,
     posterior_array: np.ndarray,
     brain_mask: np.ndarray,
-    entropy_thresh: float = 0.25,
-    posterior_min: float = 0.05,
-    max_expansion_diameter: int = 20,
+    entropy_thresh: float = ENTROPY_THRESHOLD_DEFAULT,
+    posterior_min: float = POSTERIOR_THRESHOLD_DEFAULT,
+    max_expansion_diameter: int = MAX_EXPANSION_DIAMETER_DEFAULT,
 ) -> np.ndarray:
     """Expands a valid tumor blob into surrounding ambiguous space."""
-    tumor_sum = np.sum(posterior_array[:, :, 0:3], axis=-1)
+    tumor_sum = np.sum(posterior_array[:, :, -3:], axis=-1)
     H, W = blob_mask.shape
     expanded_mask = blob_mask.copy()
 

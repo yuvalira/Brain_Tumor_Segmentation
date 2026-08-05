@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from config_parameters import *
 
 def entropy_weighted_mean(
     blob_mask: np.ndarray, posterior_array: np.ndarray, entropy_map: np.ndarray
@@ -21,7 +22,7 @@ def contour_classification(
     blob_array: np.ndarray,
     posterior_array: np.ndarray,
     entropy_map: np.ndarray,
-    blob_class_threshold: float = 0.5,
+    blob_class_threshold = WEIGHTED_POSTERIOR_MEAN_THRESHOLD,
 ) -> tuple[np.ndarray, list[bool]]:
     """Scores and filters blobs based on sum of tumor class probabilities.
 
@@ -41,7 +42,7 @@ def contour_classification(
         _, norm_scores = entropy_weighted_mean(
             mask_i, posterior_array, entropy_map
         )
-        tumor_score = np.sum(norm_scores[0:3])
+        tumor_score = np.sum(norm_scores[-3:])
 
         if tumor_score >= blob_class_threshold:
             tumor_blobs.append(mask_i)

@@ -12,7 +12,7 @@ from image_processing.contour_detection       import contour_detection
 from image_processing.contour_classification  import contour_classification
 from image_processing.seed_expansion          import expansion_loop
 
-
+from evaluation.eval_loop import eval_vol
 
 from utilities.utils import load_and_normalize_slice
 
@@ -27,9 +27,7 @@ if __name__ == "__main__":
     slice_num = 90
     target_row = 115
 
-    min_pixels_per_blob = 150
-    blob_class_threshold = 0.2
-    max_expansion_diameter = 10
+
 
     figure_output_path = (f"Brain_Tumor_Segmentation/output_figures/vol{volume_num}_slice{slice_num}_row{target_row}")
     os.makedirs(figure_output_path,exist_ok=True)
@@ -48,9 +46,9 @@ if __name__ == "__main__":
 
     entropy_map                       = compute_entropy(posteriors,brain_mask)
     sobel_map                         = sobel_edge_detection(posteriors,brain_mask)
-    blob_array                        = contour_detection(sobel_map,min_pixels_per_blob=min_pixels_per_blob)
-    classified_blobs, is_tumor_list   = contour_classification(blob_array,posteriors,entropy_map,blob_class_threshold=blob_class_threshold)
-    total_segmentation_mask           = expansion_loop(classified_blobs, entropy_map, posteriors, brain_mask,max_expansion_diameter=max_expansion_diameter)
+    blob_array                        = contour_detection(sobel_map)
+    classified_blobs, is_tumor_list   = contour_classification(blob_array,posteriors,entropy_map)
+    total_segmentation_mask           = expansion_loop(classified_blobs, entropy_map, posteriors, brain_mask)
 
 
 
@@ -72,3 +70,5 @@ if __name__ == "__main__":
 
     fig6_path = os.path.join(figure_output_path, "segmentation_results.png")
     visualize_segmentation(total_segmentation_mask, gt_mask, brain_mask, fig6_path)
+
+    eval_vol(volume_num)
