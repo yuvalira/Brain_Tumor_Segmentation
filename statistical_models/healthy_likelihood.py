@@ -30,14 +30,18 @@ def healthy_gmm_joint_likelihood(vol_num: int, lambda_val: float = LAMBDA, symme
     covariances = gmm['covariances']  # Shape: (K, 4, 4) or (K, 8, 8)
     prior_healthy = gmm['prior']  # Dataset prior P(Healthy)
 
-    local_weights_data = np.load(local_weights_path)
-    local_weights = local_weights_data['weights']  # Shape: (H, W, K)
-
     num_components = len(global_weights)
 
-    # 2. Linear Interpolation of Spatial Component Weights: (H, W, K)
+    # 2. Select global baseline weights or interpolate spatial weights.
     global_weights_3d = global_weights[np.newaxis, np.newaxis, :]
-    weights = (1.0 - lambda_val) * global_weights_3d + lambda_val * local_weights
+    if lambda_val == 0:
+        weights = np.broadcast_to(
+            global_weights_3d,
+            (IMAGE_PIXEL_LENGTH, IMAGE_PIXEL_LENGTH, num_components),
+        )
+    else:
+        local_weights = np.load(local_weights_path)['weights']
+        weights = (1.0 - lambda_val) * global_weights_3d + lambda_val * local_weights
 
     # 3. Load Target Slice Features
     slice_output = load_and_normalize_slice(vol_num, SLICE_NUM, symmetric=symmetric)
