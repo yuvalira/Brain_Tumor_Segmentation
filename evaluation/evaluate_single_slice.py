@@ -21,6 +21,45 @@ from statistical_models.tumor_likelihoods import tumor_joint_likelihood
 from utilities.utils import load_and_normalize_slice
 
 
+def apply_ndi_fusion(
+    tumor_likelihoods,
+    ndi_features,
+    symmetric_brain_mask,
+    ndi_strength=0.0,
+    ndi_percentile=90.0,
+    healthy_likelihood=None,
+    ndi_posterior_gate=0.0,
+):
+    """Use strong left-right asymmetry as a bounded tumor-likelihood boost."""
+    if ndi_strength <= 0:
+        return tumor_likelihoods, np.zeros(tumor_likelihoods.shape[:2])
+
+    ndi_score = np.sqrt(np.mean(np.square(ndi_features), axis=-1))
+    valid_scores = ndi_score[symmetric_brain_mask]
+    if valid_scores.size == 0:
+        return tumor_likelihoods, np.zeros_like(ndi_score)
+
+    threshold = np.percentile(valid_scores, ndi_percentile)
+    ceiling = np.percentile(valid_scores, 99.5)
+    normalized_ndi = np.clip(
+        (ndi_score - threshold) / max(ceiling - threshold, 1e-8), 0.0, 1.0
+    )
+    normalized_ndi *= symmetric_brain_mask
+    if healthy_likelihood is not None and ndi_posterior_gate > 0:
+        tumor_sum = np.sum(tumor_likelihoods, axis=-1)
+        base_posterior = np.divide(
+            tumor_sum,
+            healthy_likelihood + tumor_sum,
+            out=np.zeros_like(tumor_sum),
+            where=(healthy_likelihood + tumor_sum) > 0,
+        )
+        normalized_ndi *= base_posterior >= ndi_posterior_gate
+    fused_likelihoods = tumor_likelihoods * (
+        1.0 + ndi_strength * normalized_ndi[:, :, np.newaxis]
+    )
+    return fused_likelihoods, normalized_ndi
+
+
 def segment_likelihoods(
     healthy_likelihood,
     tumor_likelihoods,
@@ -109,6 +148,9 @@ def eval_vol(
     symmetric=False,
     lambda_val=LAMBDA,
     tumor_prior_scale=1.0,
+    ndi_strength=0.0,
+    ndi_percentile=90.0,
+    ndi_posterior_gate=0.0,
     min_pixels_per_blob=MIN_NUM_PIXELS_PER_BLOB_DEFAULT,
     allow_internal=ALLOW_INTERNAL_CONTOURS,
     binarization_factor=SOBEL_BINARIZATION_OTSU_FACTOR,
@@ -121,13 +163,25 @@ def eval_vol(
 ):
     """Run one central-slice segmentation and return its Dice and IoU scores."""
     slice_output = load_and_normalize_slice(vol_num, SLICE_NUM, symmetric=symmetric)
-    slice_im, brain_mask, gt_mask = slice_output[:3]
+    features, brain_mask, gt_mask = slice_output[:3]
+    slice_im = features[:, :, :4]
     healthy_likelihood = healthy_gmm_joint_likelihood(
-        vol_num, lambda_val=lambda_val, symmetric=symmetric
+        vol_num, lambda_val=lambda_val, symmetric=False
     )
     tumor_likelihoods = tumor_prior_scale * tumor_joint_likelihood(
-        vol_num, symmetric=symmetric
+        vol_num, symmetric=False
     )
+    ndi_score = np.zeros(brain_mask.shape, dtype=np.float64)
+    if symmetric:
+        tumor_likelihoods, ndi_score = apply_ndi_fusion(
+            tumor_likelihoods,
+            features[:, :, 4:],
+            slice_output[3],
+            ndi_strength=ndi_strength,
+            ndi_percentile=ndi_percentile,
+            healthy_likelihood=healthy_likelihood,
+            ndi_posterior_gate=ndi_posterior_gate,
+        )
     segmentation = segment_likelihoods(
         healthy_likelihood,
         tumor_likelihoods,
@@ -205,6 +259,7 @@ def eval_vol(
             "image": slice_im,
             "brain_mask": brain_mask,
             "ground_truth": gt_binary,
+            "ndi_score": ndi_score,
             **segmentation,
             **metrics,
         }
