@@ -54,14 +54,15 @@ def load_and_normalize_slice(vol_num, slice_num, symmetric=False, blur_sigma=2.0
 
     # 3. Compute 4D Normalized Difference Index (NDI) for Symmetry (8D Mode)
 
-    mirrored_eroded_mask = np.flipud(eroded_mask)
+    # Reflect columns across the vertical midline to compare left/right hemispheres.
+    mirrored_eroded_mask = np.fliplr(eroded_mask)
     symmetric_brain_mask = eroded_mask & mirrored_eroded_mask
 
     blurred_raw = np.zeros_like(image)
     for c in range(4):
         blurred_raw[:, :, c] = gaussian_filter(image[:, :, c], sigma=blur_sigma)
 
-    mirrored_raw = np.flipud(blurred_raw)
+    mirrored_raw = np.fliplr(blurred_raw)
     denom = np.maximum(blurred_raw + mirrored_raw, 1e-3)
     ndi_raw = np.clip((blurred_raw - mirrored_raw) / denom, -1.0, 1.0)
 

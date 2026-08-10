@@ -21,13 +21,10 @@ from statistical_models.tumor_likelihoods import tumor_joint_likelihood
 from utilities.utils import load_and_normalize_slice
 
 
-def eval_vol(
-    vol_num,
-    target_row=None,
-    diagnostic_figures=False,
-    verbose=False,
-    symmetric=False,
-    lambda_val=LAMBDA,
+def segment_likelihoods(
+    healthy_likelihood,
+    tumor_likelihoods,
+    brain_mask,
     min_pixels_per_blob=MIN_NUM_PIXELS_PER_BLOB_DEFAULT,
     allow_internal=ALLOW_INTERNAL_CONTOURS,
     binarization_factor=SOBEL_BINARIZATION_OTSU_FACTOR,
@@ -35,22 +32,8 @@ def eval_vol(
     entropy_thresh=ENTROPY_THRESHOLD_DEFAULT,
     posterior_min=POSTERIOR_THRESHOLD_DEFAULT,
     max_expansion_diameter=MAX_EXPANSION_DIAMETER_DEFAULT,
-    model_name=None,
-    return_details=False,
 ):
-    """Run one central-slice segmentation and return its Dice and IoU scores.
-
-    ``symmetric=False, lambda_val=0`` is the baseline GMM.
-    ``symmetric=False, lambda_val>0`` is the spatial GMM.
-    ``symmetric=True, lambda_val>0`` is the spatial GMM with NDI features.
-    """
-    slice_output = load_and_normalize_slice(vol_num, SLICE_NUM, symmetric=symmetric)
-    slice_im, brain_mask, gt_mask = slice_output[:3]
-
-    healthy_likelihood = healthy_gmm_joint_likelihood(
-        vol_num, lambda_val=lambda_val, symmetric=symmetric
-    )
-    tumor_likelihoods = tumor_joint_likelihood(vol_num, symmetric=symmetric)
+    """Convert healthy/tumor likelihood maps into a binary segmentation mask."""
     joint_likelihoods = np.dstack([healthy_likelihood, tumor_likelihoods])
     evidence = np.sum(joint_likelihoods, axis=-1, keepdims=True)
     posteriors = np.divide(
@@ -59,7 +42,6 @@ def eval_vol(
         out=np.zeros_like(joint_likelihoods),
         where=evidence > 0,
     )
-
     entropy_map = compute_entropy(posteriors, brain_mask)
     sobel_map = sobel_edge_detection(posteriors, brain_mask)
     blob_array = contour_detection(
@@ -84,86 +66,153 @@ def eval_vol(
         posterior_min=posterior_min,
         max_expansion_diameter=max_expansion_diameter,
     )
+    return {
+        "prediction": (segmentation_mask > 0) & brain_mask.astype(bool),
+        "posteriors": posteriors,
+        "entropy_map": entropy_map,
+        "sobel_map": sobel_map,
+        "blob_array": blob_array,
+        "is_tumor_list": is_tumor_list,
+    }
 
-    gt_binary = np.any(gt_mask > 0, axis=-1) if gt_mask.ndim == 3 else gt_mask > 0
-    pred_mask = (segmentation_mask > 0) & brain_mask.astype(bool)
-    intersection = int(np.sum(pred_mask & gt_binary))
-    union = int(np.sum(pred_mask | gt_binary))
-    pred_size = int(np.sum(pred_mask))
-    gt_size = int(np.sum(gt_binary))
 
+def calculate_metrics(prediction, ground_truth):
+    """Calculate segmentation counts and metrics, including empty-empty cases."""
+    intersection = int(np.sum(prediction & ground_truth))
+    union = int(np.sum(prediction | ground_truth))
+    pred_size = int(np.sum(prediction))
+    gt_size = int(np.sum(ground_truth))
     if pred_size == 0 and gt_size == 0:
-        dice = iou = 1.0
+        dice = iou = precision = recall = 1.0
     else:
         dice = 2.0 * intersection / (pred_size + gt_size)
         iou = intersection / union
+        precision = intersection / pred_size if pred_size else 0.0
+        recall = intersection / gt_size if gt_size else 0.0
+    return {
+        "dice": dice,
+        "iou": iou,
+        "precision": precision,
+        "recall": recall,
+        "intersection": intersection,
+        "union": union,
+        "pred_size": pred_size,
+        "gt_size": gt_size,
+    }
+
+
+def eval_vol(
+    vol_num,
+    target_row=None,
+    diagnostic_figures=False,
+    verbose=False,
+    symmetric=False,
+    lambda_val=LAMBDA,
+    tumor_prior_scale=1.0,
+    min_pixels_per_blob=MIN_NUM_PIXELS_PER_BLOB_DEFAULT,
+    allow_internal=ALLOW_INTERNAL_CONTOURS,
+    binarization_factor=SOBEL_BINARIZATION_OTSU_FACTOR,
+    blob_class_threshold=WEIGHTED_POSTERIOR_MEAN_THRESHOLD,
+    entropy_thresh=ENTROPY_THRESHOLD_DEFAULT,
+    posterior_min=POSTERIOR_THRESHOLD_DEFAULT,
+    max_expansion_diameter=MAX_EXPANSION_DIAMETER_DEFAULT,
+    model_name=None,
+    return_details=False,
+):
+    """Run one central-slice segmentation and return its Dice and IoU scores."""
+    slice_output = load_and_normalize_slice(vol_num, SLICE_NUM, symmetric=symmetric)
+    slice_im, brain_mask, gt_mask = slice_output[:3]
+    healthy_likelihood = healthy_gmm_joint_likelihood(
+        vol_num, lambda_val=lambda_val, symmetric=symmetric
+    )
+    tumor_likelihoods = tumor_prior_scale * tumor_joint_likelihood(
+        vol_num, symmetric=symmetric
+    )
+    segmentation = segment_likelihoods(
+        healthy_likelihood,
+        tumor_likelihoods,
+        brain_mask,
+        min_pixels_per_blob=min_pixels_per_blob,
+        allow_internal=allow_internal,
+        binarization_factor=binarization_factor,
+        blob_class_threshold=blob_class_threshold,
+        entropy_thresh=entropy_thresh,
+        posterior_min=posterior_min,
+        max_expansion_diameter=max_expansion_diameter,
+    )
+    gt_binary = np.any(gt_mask > 0, axis=-1) if gt_mask.ndim == 3 else gt_mask > 0
+    metrics = calculate_metrics(segmentation["prediction"], gt_binary)
 
     if verbose:
-        print(f"Dice: {dice:.3f}, IoU: {iou:.3f}")
+        print(
+            f"Dice: {metrics['dice']:.3f}, IoU: {metrics['iou']:.3f}, "
+            f"precision: {metrics['precision']:.3f}, recall: {metrics['recall']:.3f}"
+        )
 
     if diagnostic_figures:
         label = model_name or ("spatial_gmm_ndi" if symmetric else "gmm")
-        figure_output_path = os.path.join(
+        output_dir = os.path.join(
             PROJECT_ROOT, "output", "diagnostic_figures", f"{label}_vol{vol_num}"
         )
-        os.makedirs(figure_output_path, exist_ok=True)
+        os.makedirs(output_dir, exist_ok=True)
         visualize_probability(
             slice_im,
-            posteriors,
+            segmentation["posteriors"],
             brain_mask,
             gt_mask,
-            os.path.join(figure_output_path, "probability.png"),
+            os.path.join(output_dir, "probability.png"),
         )
         visualize_entropy(
-            entropy_map,
+            segmentation["entropy_map"],
             brain_mask,
-            os.path.join(figure_output_path, "entropy.png"),
+            os.path.join(output_dir, "entropy.png"),
         )
         visualize_sobel_edges(
-            sobel_map,
+            segmentation["sobel_map"],
             brain_mask,
-            os.path.join(figure_output_path, "edges.png"),
+            os.path.join(output_dir, "edges.png"),
         )
         visualize_contours(
             slice_im,
-            posteriors,
-            sobel_map,
+            segmentation["posteriors"],
+            segmentation["sobel_map"],
             brain_mask,
             gt_mask,
-            blob_array,
-            is_tumor_list,
-            os.path.join(figure_output_path, "contours.png"),
+            segmentation["blob_array"],
+            segmentation["is_tumor_list"],
+            os.path.join(output_dir, "contours.png"),
         )
         visualize_expansion(
-            segmentation_mask,
+            segmentation["prediction"],
             slice_im,
-            posteriors,
+            segmentation["posteriors"],
             brain_mask,
             gt_mask,
-            blob_array,
-            is_tumor_list,
-            os.path.join(figure_output_path, "seed_expansion.png"),
+            segmentation["blob_array"],
+            segmentation["is_tumor_list"],
+            os.path.join(output_dir, "seed_expansion.png"),
         )
         visualize_segmentation(
-            segmentation_mask,
+            segmentation["prediction"],
             gt_mask,
             brain_mask,
-            os.path.join(figure_output_path, "segmentation_results.png"),
+            os.path.join(output_dir, "segmentation_results.png"),
         )
 
     if return_details:
         return {
             "volume": vol_num,
-            "dice": dice,
-            "iou": iou,
-            "intersection": intersection,
-            "union": union,
-            "pred_size": pred_size,
-            "gt_size": gt_size,
             "image": slice_im,
             "brain_mask": brain_mask,
             "ground_truth": gt_binary,
-            "prediction": pred_mask,
-            "posteriors": posteriors,
+            **segmentation,
+            **metrics,
         }
-    return dice, iou, intersection, union, pred_size, gt_size
+    return (
+        metrics["dice"],
+        metrics["iou"],
+        metrics["intersection"],
+        metrics["union"],
+        metrics["pred_size"],
+        metrics["gt_size"],
+    )
