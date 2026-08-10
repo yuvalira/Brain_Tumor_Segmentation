@@ -2,7 +2,6 @@ import os
 import h5py
 import numpy as np
 import matplotlib
-matplotlib.use("macosx")
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter, binary_erosion
 from config import *
@@ -15,10 +14,11 @@ import os
 import h5py
 import numpy as np
 from scipy.ndimage import binary_erosion, gaussian_filter
-from config import PROJECT_ROOT
+from config import PROJECT_ROOT, DATA_ROOT
 
 # 1. Define paths relative to project root
-DATASET_DIR = os.path.join(PROJECT_ROOT, 'MRI_2026_datasets', 'Brats', 'BraTS2020_training_data', 'content', 'data')
+DATASET_DIR = os.path.join(DATA_ROOT, 'MRI_2026_datasets', 'Brats', 'BraTS2020_training_data', 'content', 'data')
+print(f"dataset director: ", DATASET_DIR)
 UTILITIES_DIR = os.path.join(PROJECT_ROOT, 'utilities')
 
 # 2. Pre-load normalization stats once at module level to avoid repeated disk reads

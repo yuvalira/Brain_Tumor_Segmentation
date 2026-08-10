@@ -1,5 +1,7 @@
 import os
+from pathlib import Path
 
+DATA_ROOT = Path(__file__).resolve().parent.parent
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 MAX_TRAINING_VOLUME = 250
