@@ -59,6 +59,15 @@ def objective(trial, cache):
         "blob_class_threshold": trial.suggest_float(
             "blob_class_threshold", 0.05, 0.6, step=0.02
         ),
+        "large_contour_min_area": trial.suggest_int(
+            "large_contour_min_area", 100, 2000, step=100
+        ),
+        "top_posterior_mean_threshold": trial.suggest_float(
+            "top_posterior_mean_threshold", 0.3, 0.8, step=0.05
+        ),
+        "high_posterior_fraction_threshold": trial.suggest_float(
+            "high_posterior_fraction_threshold", 0.1, 0.6, step=0.05
+        ),
         "entropy_thresh": trial.suggest_float("entropy_thresh", 0.02, 0.5, step=0.02),
         "posterior_min": trial.suggest_float("posterior_min", 0.05, 0.6, step=0.02),
         "max_expansion_diameter": trial.suggest_int("max_expansion_diameter", 5, 35),
@@ -77,6 +86,9 @@ def objective(trial, cache):
             min_pixels_per_blob=params["min_pixels_per_blob"],
             binarization_factor=params["binarization_factor"],
             blob_class_threshold=params["blob_class_threshold"],
+            large_contour_min_area=params["large_contour_min_area"],
+            top_posterior_mean_threshold=params["top_posterior_mean_threshold"],
+            high_posterior_fraction_threshold=params["high_posterior_fraction_threshold"],
             entropy_thresh=params["entropy_thresh"],
             posterior_min=params["posterior_min"],
             max_expansion_diameter=params["max_expansion_diameter"],
@@ -145,6 +157,9 @@ def evaluate_ndi_params(
             min_pixels_per_blob=spatial_params["min_pixels_per_blob"],
             binarization_factor=spatial_params["binarization_factor"],
             blob_class_threshold=spatial_params["blob_class_threshold"],
+            large_contour_min_area=spatial_params["large_contour_min_area"],
+            top_posterior_mean_threshold=spatial_params["top_posterior_mean_threshold"],
+            high_posterior_fraction_threshold=spatial_params["high_posterior_fraction_threshold"],
             entropy_thresh=spatial_params["entropy_thresh"],
             posterior_min=spatial_params["posterior_min"],
             max_expansion_diameter=spatial_params["max_expansion_diameter"],
