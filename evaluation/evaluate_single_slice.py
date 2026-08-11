@@ -111,6 +111,7 @@ def segment_likelihoods(
         "entropy_map": entropy_map,
         "sobel_map": sobel_map,
         "blob_array": blob_array,
+        "classified_blobs": classified_blobs,
         "is_tumor_list": is_tumor_list,
     }
 
@@ -170,6 +171,14 @@ def eval_vol(
     )
     tumor_likelihoods = tumor_prior_scale * tumor_joint_likelihood(
         vol_num, symmetric=False
+    )
+    raw_tumor_sum = np.sum(tumor_likelihoods, axis=-1)
+    raw_evidence = healthy_likelihood + raw_tumor_sum
+    raw_tumor_posterior = np.divide(
+        raw_tumor_sum,
+        raw_evidence,
+        out=np.zeros_like(raw_tumor_sum),
+        where=raw_evidence > 0,
     )
     ndi_score = np.zeros(brain_mask.shape, dtype=np.float64)
     if symmetric:
@@ -259,6 +268,7 @@ def eval_vol(
             "image": slice_im,
             "brain_mask": brain_mask,
             "ground_truth": gt_binary,
+            "raw_tumor_posterior": raw_tumor_posterior,
             "ndi_score": ndi_score,
             **segmentation,
             **metrics,
