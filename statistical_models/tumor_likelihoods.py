@@ -7,7 +7,11 @@ from config import *
 from utilities.utils import load_and_normalize_slice
 
 
-def tumor_joint_likelihood(vol_num: int, symmetric: bool = False):
+def tumor_joint_likelihood(
+    vol_num: int,
+    symmetric: bool = False,
+    slice_num: int = SLICE_NUM,
+):
     """Calculate one joint likelihood map for each four-component tumor GMM."""
     filename = "tumor_gmm_symmetric.npz" if symmetric else "tumor_gmm.npz"
     parameters = np.load(
@@ -18,7 +22,7 @@ def tumor_joint_likelihood(vol_num: int, symmetric: bool = False):
     means = parameters["means"]
     covariances = parameters["covariances"]
 
-    slice_output = load_and_normalize_slice(vol_num, SLICE_NUM, symmetric=symmetric)
+    slice_output = load_and_normalize_slice(vol_num, slice_num, symmetric=symmetric)
     features_image, brain_mask = slice_output[:2]
     height, width, num_features = features_image.shape
     X_flat = features_image.reshape(-1, num_features).astype(np.float64)
