@@ -5,7 +5,12 @@ from config import *
 from utilities.utils import load_and_normalize_slice
 
 
-def healthy_gmm_joint_likelihood(vol_num: int, lambda_val: float = LAMBDA, symmetric: bool = False):
+def healthy_gmm_joint_likelihood(
+    vol_num: int,
+    lambda_val: float = LAMBDA,
+    symmetric: bool = False,
+    slice_num: int = SLICE_NUM,
+):
     """
     Computes the joint healthy GMM likelihood map P(x, Healthy) for a slice.
 
@@ -44,7 +49,7 @@ def healthy_gmm_joint_likelihood(vol_num: int, lambda_val: float = LAMBDA, symme
         weights = (1.0 - lambda_val) * global_weights_3d + lambda_val * local_weights
 
     # 3. Load Target Slice Features
-    slice_output = load_and_normalize_slice(vol_num, SLICE_NUM, symmetric=symmetric)
+    slice_output = load_and_normalize_slice(vol_num, slice_num, symmetric=symmetric)
     features_image = slice_output[0]  # Shape: (H, W, 4) or (H, W, 8)
     brain_mask = slice_output[1]
 
