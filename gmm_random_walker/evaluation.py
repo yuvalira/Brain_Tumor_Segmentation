@@ -4,16 +4,37 @@ from pathlib import Path
 import numpy as np
 
 from config import MAX_VALIDATION_VOLUME, PROJECT_ROOT, TOTAL_VOLUMES
-from gmm_random_walker.model import evaluate_random_walker_volume
+from gmm_random_walker.model import evaluate_hybrid_volume
 
 
-def evaluate_random_walker_test_set(**params):
+def evaluate_hybrid_test_set(spatial_params, **hybrid_params):
     volumes = np.arange(MAX_VALIDATION_VOLUME + 1, TOTAL_VOLUMES + 1)
     records = []
-    print(f"Evaluating GMM + Random Walker on {len(volumes)} test volumes...")
+    print(f"Evaluating Spatial GMM + local Random Walker on {len(volumes)} volumes...")
     for vol_num in volumes:
-        metrics = evaluate_random_walker_volume(int(vol_num), **params)
-        records.append({"volume": int(vol_num), **metrics})
+        details = evaluate_hybrid_volume(
+            int(vol_num),
+            spatial_params=spatial_params,
+            return_details=True,
+            **hybrid_params,
+        )
+        records.append({
+            "volume": int(vol_num),
+            "base_dice": details["base_dice"],
+            **{
+                name: details[name]
+                for name in [
+                    "dice",
+                    "iou",
+                    "precision",
+                    "recall",
+                    "intersection",
+                    "union",
+                    "pred_size",
+                    "gt_size",
+                ]
+            },
+        })
 
     tumor_present = np.array([row["gt_size"] > 0 for row in records])
     intersections = np.array([row["intersection"] for row in records])
@@ -24,14 +45,14 @@ def evaluate_random_walker_test_set(**params):
     recall = np.array([row["recall"] for row in records])
     missed = tumor_present & (intersections == 0)
     empty_fp = (~tumor_present) & (pred_sizes > 0)
-
     results = {
-        "model": "gmm_random_walker",
+        "model": "spatial_gmm_random_walker_hybrid",
         "volume_numbers": volumes,
         "dice_per_volume": dice,
         "iou_per_volume": iou,
         "precision_per_volume": precision,
         "recall_per_volume": recall,
+        "base_dice_per_volume": np.array([row["base_dice"] for row in records]),
         "gt_size_per_volume": np.array([row["gt_size"] for row in records]),
         "pred_size_per_volume": pred_sizes,
         "tumor_present": tumor_present,
@@ -46,13 +67,14 @@ def evaluate_random_walker_test_set(**params):
         "gt_tumors_count": int(np.sum(tumor_present)),
         "missed_volume_numbers": volumes[missed],
         "tumor_free_false_positives": int(np.sum(empty_fp)),
-        **{name: float(value) for name, value in params.items()},
+        **{f"spatial_{name}": float(value) for name, value in spatial_params.items()},
+        **{name: float(value) for name, value in hybrid_params.items()},
     }
 
     output_dir = Path(PROJECT_ROOT) / "output" / "gmm_random_walker"
     output_dir.mkdir(parents=True, exist_ok=True)
-    np.savez(output_dir / "metrics.npz", **results)
-    with open(output_dir / "per_volume.csv", "w", newline="") as stream:
+    np.savez(output_dir / "hybrid_metrics.npz", **results)
+    with open(output_dir / "hybrid_per_volume.csv", "w", newline="") as stream:
         writer = csv.DictWriter(stream, fieldnames=records[0].keys())
         writer.writeheader()
         writer.writerows(records)
