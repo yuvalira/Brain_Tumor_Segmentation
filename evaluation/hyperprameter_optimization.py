@@ -6,7 +6,10 @@ import optuna
 from config import *
 from evaluation.evaluate_single_slice import (
     apply_ndi_fusion,
+    apply_z_context_fusion,
+    build_z_context_score,
     calculate_metrics,
+    load_z_neighbor_likelihoods,
     segment_likelihoods,
 )
 from statistical_models.healthy_likelihood import healthy_gmm_joint_likelihood
@@ -16,6 +19,7 @@ from utilities.utils import load_and_normalize_slice
 optuna.logging.set_verbosity(optuna.logging.WARNING)
 
 SPATIAL_OPTIMIZATION_VERSION = 2
+Z_OPTIMIZATION_VERSION = 1
 SPATIAL_PRECISION_TOLERANCE = 0.01
 SPATIAL_PARAMETER_NAMES = [
     "lambda_val", "tumor_prior_scale", "min_pixels_per_blob",
@@ -25,7 +29,7 @@ SPATIAL_PARAMETER_NAMES = [
 ]
 
 
-def build_validation_cache(symmetric=False):
+def build_validation_cache(symmetric=False, include_z=False):
     """Precompute validation likelihood maps once."""
     cache = []
     validation_volumes = range(MAX_TRAINING_VOLUME + 1, MAX_VALIDATION_VOLUME + 1)
@@ -41,6 +45,7 @@ def build_validation_cache(symmetric=False):
             "healthy_global": healthy_gmm_joint_likelihood(vol_num, lambda_val=0.0, symmetric=False),
             "healthy_local": healthy_gmm_joint_likelihood(vol_num, lambda_val=1.0, symmetric=False),
             "tumor": tumor_joint_likelihood(vol_num, symmetric=False),
+            "z_neighbors": load_z_neighbor_likelihoods(vol_num) if include_z else None,
             "ndi_features": features[:, :, 4:] if symmetric else None,
             "symmetric_brain_mask": slice_output[3] if symmetric else None,
         })
@@ -203,6 +208,130 @@ def run_optimization(n_trials=100, symmetric=False):
     return best_params
 
 
+def evaluate_z_params(cache, spatial_params, z_strength, z_posterior_gate):
+    """Evaluate fixed Spatial GMM parameters with axial-neighbor support."""
+    dice_all, dice_tumor, precision_tumor = [], [], []
+    missed_tumors = false_positive_empty = 0
+    for item in cache:
+        healthy = (
+            (1.0 - spatial_params["lambda_val"]) * item["healthy_global"]
+            + spatial_params["lambda_val"] * item["healthy_local"]
+        )
+        tumor = spatial_params["tumor_prior_scale"] * item["tumor"]
+        z_score = build_z_context_score(
+            healthy,
+            tumor,
+            item["z_neighbors"],
+            tumor_prior_scale=spatial_params["tumor_prior_scale"],
+        )
+        tumor = apply_z_context_fusion(
+            tumor,
+            healthy,
+            z_score,
+            z_strength=z_strength,
+            z_posterior_gate=z_posterior_gate,
+        )
+        segmentation = segment_likelihoods(
+            healthy,
+            tumor,
+            item["brain_mask"],
+            min_pixels_per_blob=spatial_params["min_pixels_per_blob"],
+            binarization_factor=spatial_params["binarization_factor"],
+            blob_class_threshold=spatial_params["blob_class_threshold"],
+            large_contour_min_area=spatial_params["large_contour_min_area"],
+            top_posterior_mean_threshold=spatial_params["top_posterior_mean_threshold"],
+            high_posterior_fraction_threshold=spatial_params["high_posterior_fraction_threshold"],
+            entropy_thresh=spatial_params["entropy_thresh"],
+            posterior_min=spatial_params["posterior_min"],
+            max_expansion_diameter=spatial_params["max_expansion_diameter"],
+        )
+        metrics = calculate_metrics(segmentation["prediction"], item["ground_truth"])
+        dice_all.append(metrics["dice"])
+        if metrics["gt_size"] > 0:
+            dice_tumor.append(metrics["dice"])
+            precision_tumor.append(metrics["precision"])
+            missed_tumors += metrics["intersection"] == 0
+        else:
+            false_positive_empty += metrics["pred_size"] > 0
+    return {
+        "all_slice_dice": float(np.mean(dice_all)),
+        "tumor_present_dice": float(np.mean(dice_tumor)),
+        "tumor_present_precision": float(np.mean(precision_tumor)),
+        "missed_tumors": int(missed_tumors),
+        "false_positive_empty": int(false_positive_empty),
+    }
+
+
+def run_z_optimization(spatial_params, n_trials=40):
+    """Tune only the Z-context boost while keeping the Spatial GMM fixed."""
+    cache = build_validation_cache(symmetric=False, include_z=True)
+    baseline = evaluate_z_params(cache, spatial_params, 0.0, 0.0)
+    precision_floor = max(
+        0.0, baseline["tumor_present_precision"] - SPATIAL_PRECISION_TOLERANCE
+    )
+
+    def z_objective(trial):
+        strength = trial.suggest_float("z_strength", 0.0, 4.0, step=0.2)
+        posterior_gate = trial.suggest_float(
+            "z_posterior_gate", 0.02, 0.30, step=0.02
+        )
+        metrics = evaluate_z_params(cache, spatial_params, strength, posterior_gate)
+        for name, value in metrics.items():
+            trial.set_user_attr(name, value)
+        return metrics["tumor_present_dice"]
+
+    study = optuna.create_study(
+        study_name="spatial_gmm_z_context_validation",
+        direction="maximize",
+        sampler=optuna.samplers.TPESampler(seed=RANDOM_SEED),
+    )
+    study.enqueue_trial({"z_strength": 0.0, "z_posterior_gate": 0.02})
+    study.optimize(z_objective, n_trials=n_trials, show_progress_bar=True)
+    acceptable_trials = [
+        trial for trial in study.trials
+        if trial.value is not None
+        and trial.user_attrs["false_positive_empty"] <= baseline["false_positive_empty"]
+        and trial.user_attrs["missed_tumors"] <= baseline["missed_tumors"]
+        and trial.user_attrs["tumor_present_precision"] >= precision_floor
+    ]
+    best_trial = max(
+        acceptable_trials,
+        key=lambda trial: (
+            trial.user_attrs["tumor_present_dice"],
+            trial.user_attrs["all_slice_dice"],
+        ),
+    )
+    best_params = {**spatial_params, **best_trial.params}
+    best = best_trial.user_attrs
+    save_path = os.path.join(
+        PROJECT_ROOT, "saved_parameters", "spatial_gmm_z_best_params.npz"
+    )
+    np.savez(
+        save_path,
+        **best_params,
+        z_optimization_version=Z_OPTIMIZATION_VERSION,
+        spatial_optimization_version=SPATIAL_OPTIMIZATION_VERSION,
+        validation_dice=best["all_slice_dice"],
+        validation_tumor_present_dice=best["tumor_present_dice"],
+        validation_tumor_present_precision=best["tumor_present_precision"],
+        validation_missed_tumors=best["missed_tumors"],
+        validation_false_positive_empty=best["false_positive_empty"],
+    )
+    print(
+        f"Spatial validation: Dice={baseline['all_slice_dice']:.4f}, "
+        f"tumor Dice={baseline['tumor_present_dice']:.4f}, "
+        f"misses={baseline['missed_tumors']}, empty FP={baseline['false_positive_empty']}"
+    )
+    print(
+        f"Spatial + Z:        Dice={best['all_slice_dice']:.4f}, "
+        f"tumor Dice={best['tumor_present_dice']:.4f}, "
+        f"misses={best['missed_tumors']}, empty FP={best['false_positive_empty']}"
+    )
+    print(f"Best Z parameters: {best_trial.params}")
+    print(f"Saved to: {save_path}")
+    return best_params
+
+
 def evaluate_ndi_params(
     cache, spatial_params, ndi_strength, ndi_percentile, ndi_posterior_gate
 ):
@@ -214,8 +343,22 @@ def evaluate_ndi_params(
             (1.0 - spatial_params["lambda_val"]) * item["healthy_global"]
             + spatial_params["lambda_val"] * item["healthy_local"]
         )
+        tumor = spatial_params["tumor_prior_scale"] * item["tumor"]
+        z_score = build_z_context_score(
+            healthy,
+            tumor,
+            item["z_neighbors"],
+            tumor_prior_scale=spatial_params["tumor_prior_scale"],
+        )
+        tumor = apply_z_context_fusion(
+            tumor,
+            healthy,
+            z_score,
+            z_strength=spatial_params["z_strength"],
+            z_posterior_gate=spatial_params["z_posterior_gate"],
+        )
         tumor, _ = apply_ndi_fusion(
-            spatial_params["tumor_prior_scale"] * item["tumor"],
+            tumor,
             item["ndi_features"],
             item["symmetric_brain_mask"],
             ndi_strength=ndi_strength,
@@ -246,7 +389,7 @@ def evaluate_ndi_params(
 
 def run_ndi_optimization(spatial_params, n_trials=40):
     """Tune only a bounded NDI boost while keeping the Spatial GMM fixed."""
-    cache = build_validation_cache(symmetric=True)
+    cache = build_validation_cache(symmetric=True, include_z=True)
     baseline = evaluate_ndi_params(cache, spatial_params, 0.0, 90.0, 0.1)
 
     def ndi_objective(trial):
@@ -284,6 +427,7 @@ def run_ndi_optimization(spatial_params, n_trials=40):
         save_path,
         **best_params,
         spatial_optimization_version=SPATIAL_OPTIMIZATION_VERSION,
+        z_optimization_version=Z_OPTIMIZATION_VERSION,
         validation_dice=best_trial.value,
         validation_missed_tumors=best_trial.user_attrs["missed_tumors"],
         validation_false_positive_empty=best_trial.user_attrs["false_positive_empty"],
