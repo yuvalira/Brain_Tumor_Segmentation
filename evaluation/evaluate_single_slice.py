@@ -1,6 +1,7 @@
 import os
 
 import numpy as np
+from scipy.ndimage import maximum_filter
 
 from config import *
 from image_processing.compute_entropy import compute_entropy
@@ -19,6 +20,70 @@ from image_processing.visualizations import (
 from statistical_models.healthy_likelihood import healthy_gmm_joint_likelihood
 from statistical_models.tumor_likelihoods import tumor_joint_likelihood
 from utilities.utils import load_and_normalize_slice
+
+
+def tumor_posterior(healthy_likelihood, tumor_likelihoods):
+    """Return binary whole-tumor posterior from healthy and tumor likelihoods."""
+    tumor_sum = np.sum(tumor_likelihoods, axis=-1)
+    evidence = healthy_likelihood + tumor_sum
+    return np.divide(
+        tumor_sum,
+        evidence,
+        out=np.zeros_like(tumor_sum),
+        where=evidence > 0,
+    )
+
+
+def load_z_neighbor_likelihoods(vol_num, z_radius=2):
+    """Load global-GMM likelihoods for slices neighboring the central slice."""
+    neighbors = []
+    for offset in range(-z_radius, z_radius + 1):
+        if offset == 0:
+            continue
+        slice_num = SLICE_NUM + offset
+        neighbors.append((
+            healthy_gmm_joint_likelihood(
+                vol_num, lambda_val=0.0, symmetric=False, slice_num=slice_num
+            ),
+            tumor_joint_likelihood(vol_num, symmetric=False, slice_num=slice_num),
+        ))
+    return neighbors
+
+
+def build_z_context_score(
+    healthy_likelihood,
+    tumor_likelihoods,
+    z_neighbor_likelihoods,
+    tumor_prior_scale=1.0,
+):
+    """Require tumor evidence in at least two of five nearby axial slices.
+
+    A 3x3 maximum filter tolerates small in-plane shifts between slices. The
+    second-highest posterior across z is retained, so an isolated response in
+    one slice cannot create Z support by itself.
+    """
+    posterior_maps = [tumor_posterior(healthy_likelihood, tumor_likelihoods)]
+    posterior_maps.extend(
+        tumor_posterior(healthy, tumor_prior_scale * tumor)
+        for healthy, tumor in z_neighbor_likelihoods
+    )
+    aligned_maps = [maximum_filter(posterior, size=3) for posterior in posterior_maps]
+    return np.sort(np.stack(aligned_maps), axis=0)[-2]
+
+
+def apply_z_context_fusion(
+    tumor_likelihoods,
+    healthy_likelihood,
+    z_context_score,
+    z_strength=0.0,
+    z_posterior_gate=0.0,
+):
+    """Boost central-slice tumor evidence only where central and Z evidence agree."""
+    if z_strength <= 0:
+        return tumor_likelihoods
+    central_posterior = tumor_posterior(healthy_likelihood, tumor_likelihoods)
+    supported = z_context_score * (central_posterior >= z_posterior_gate)
+    return tumor_likelihoods * (1.0 + z_strength * supported[:, :, np.newaxis])
 
 
 def apply_ndi_fusion(
@@ -155,6 +220,8 @@ def eval_vol(
     symmetric=False,
     lambda_val=LAMBDA,
     tumor_prior_scale=1.0,
+    z_strength=0.0,
+    z_posterior_gate=0.0,
     ndi_strength=0.0,
     ndi_percentile=90.0,
     ndi_posterior_gate=0.0,
@@ -181,14 +248,23 @@ def eval_vol(
     tumor_likelihoods = tumor_prior_scale * tumor_joint_likelihood(
         vol_num, symmetric=False
     )
-    raw_tumor_sum = np.sum(tumor_likelihoods, axis=-1)
-    raw_evidence = healthy_likelihood + raw_tumor_sum
-    raw_tumor_posterior = np.divide(
-        raw_tumor_sum,
-        raw_evidence,
-        out=np.zeros_like(raw_tumor_sum),
-        where=raw_evidence > 0,
-    )
+    raw_tumor_posterior = tumor_posterior(healthy_likelihood, tumor_likelihoods)
+    z_context_score = np.zeros(brain_mask.shape, dtype=np.float64)
+    if z_strength > 0:
+        z_neighbors = load_z_neighbor_likelihoods(vol_num)
+        z_context_score = build_z_context_score(
+            healthy_likelihood,
+            tumor_likelihoods,
+            z_neighbors,
+            tumor_prior_scale=tumor_prior_scale,
+        )
+        tumor_likelihoods = apply_z_context_fusion(
+            tumor_likelihoods,
+            healthy_likelihood,
+            z_context_score,
+            z_strength=z_strength,
+            z_posterior_gate=z_posterior_gate,
+        )
     ndi_score = np.zeros(brain_mask.shape, dtype=np.float64)
     if symmetric:
         tumor_likelihoods, ndi_score = apply_ndi_fusion(
@@ -281,6 +357,7 @@ def eval_vol(
             "brain_mask": brain_mask,
             "ground_truth": gt_binary,
             "raw_tumor_posterior": raw_tumor_posterior,
+            "z_context_score": z_context_score,
             "ndi_score": ndi_score,
             **segmentation,
             **metrics,
