@@ -12,6 +12,8 @@ def eval_dataset(
     symmetric=False,
     lambda_val=LAMBDA,
     tumor_prior_scale=1.0,
+    z_strength=0.0,
+    z_posterior_gate=0.0,
     ndi_strength=0.0,
     ndi_percentile=90.0,
     ndi_posterior_gate=0.0,
@@ -27,7 +29,7 @@ def eval_dataset(
     print(
         f"Evaluating {len(volume_numbers)} test volumes: {model_name} "
         f"(symmetric={symmetric}, lambda={lambda_val:.2f}, "
-        f"tumor scale={tumor_prior_scale:.2f})"
+        f"tumor scale={tumor_prior_scale:.2f}, z strength={z_strength:.2f})"
     )
     for index, vol_num in enumerate(volume_numbers):
         details = eval_vol(
@@ -35,6 +37,8 @@ def eval_dataset(
             symmetric=symmetric,
             lambda_val=lambda_val,
             tumor_prior_scale=tumor_prior_scale,
+            z_strength=z_strength,
+            z_posterior_gate=z_posterior_gate,
             ndi_strength=ndi_strength,
             ndi_percentile=ndi_percentile,
             ndi_posterior_gate=ndi_posterior_gate,
@@ -61,6 +65,8 @@ def eval_dataset(
         "symmetric": symmetric,
         "lambda_val": float(lambda_val),
         "tumor_prior_scale": float(tumor_prior_scale),
+        "z_strength": float(z_strength),
+        "z_posterior_gate": float(z_posterior_gate),
         "ndi_strength": float(ndi_strength),
         "ndi_percentile": float(ndi_percentile),
         "ndi_posterior_gate": float(ndi_posterior_gate),
