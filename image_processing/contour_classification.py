@@ -19,8 +19,8 @@ def contour_classification(
     blob_array: np.ndarray,
     posterior_array: np.ndarray,
     entropy_map: np.ndarray,
-    blob_class_threshold=WEIGHTED_POSTERIOR_MEAN_THRESHOLD,
-    large_contour_min_area=LARGE_CONTOUR_MIN_AREA_DEFAULT,
+    blob_class_threshold=WEIGHTED_POSTERIOR_MEAN_THRESHOLD_ALL,
+    large_contour_min_area=MIN_NUM_PIXELS_PER_BLOB_DEFAULT,
     top_posterior_mean_threshold=TOP_POSTERIOR_MEAN_THRESHOLD_DEFAULT,
     high_posterior_fraction_threshold=HIGH_POSTERIOR_FRACTION_THRESHOLD_DEFAULT,
 ) -> tuple[np.ndarray, list[bool]]:

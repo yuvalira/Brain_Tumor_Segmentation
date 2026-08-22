@@ -72,8 +72,8 @@ def expansion_loop(
     entropy_map: np.ndarray,
     posterior_array: np.ndarray,
     brain_mask: np.ndarray,
-    entropy_thresh = ENTROPY_THRESHOLD_DEFAULT,
-    posterior_min= POSTERIOR_THRESHOLD_DEFAULT,
+    entropy_thresh = ENTROPY_THRESHOLD_ALL,
+    posterior_min= POSTERIOR_THRESHOLD_ALL,
     max_expansion_diameter = MAX_EXPANSION_DIAMETER_DEFAULT
 ) -> np.ndarray:
     """Iterates over all classified tumor blobs, expands each, and unions them with logical OR."""

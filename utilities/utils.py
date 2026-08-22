@@ -1,35 +1,27 @@
 import os
 import h5py
 import numpy as np
-import matplotlib
-import matplotlib.pyplot as plt
-from scipy.ndimage import gaussian_filter, binary_erosion
-from config import *
+from scipy.ndimage import distance_transform_edt, gaussian_filter
+from config import DATA_ROOT, PROJECT_ROOT
 
-# Set dark style for crisp medical image contrast
-plt.style.use('dark_background')
+DATASET_DIR = os.path.join(
+    DATA_ROOT,
+    "MRI_2026_datasets",
+    "Brats",
+    "BraTS2020_training_data",
+    "content",
+    "data",
+)
+UTILITIES_DIR = os.path.join(PROJECT_ROOT, "utilities")
 
-
-import os
-import h5py
-import numpy as np
-from scipy.ndimage import binary_erosion, gaussian_filter
-from config import PROJECT_ROOT, DATA_ROOT
-
-# 1. Define paths relative to project root
-DATASET_DIR = os.path.join(DATA_ROOT, 'MRI_2026_datasets', 'Brats', 'BraTS2020_training_data', 'content', 'data')
-print(f"dataset director: ", DATASET_DIR)
-UTILITIES_DIR = os.path.join(PROJECT_ROOT, 'utilities')
-
-# 2. Pre-load normalization stats once at module level to avoid repeated disk reads
-VOLUME_MEANS = np.load(os.path.join(UTILITIES_DIR, 'volume_means.npy'))
-VOLUME_STDS = np.load(os.path.join(UTILITIES_DIR, 'volume_stds.npy'))
+VOLUME_MEANS = np.load(os.path.join(UTILITIES_DIR, "volume_means.npy"))
+VOLUME_STDS = np.load(os.path.join(UTILITIES_DIR, "volume_stds.npy"))
 
 
-def load_and_normalize_slice(vol_num, slice_num, symmetric=False, blur_sigma=2.0):
+def load_and_normalize_slice(vol_num, slice_num, blur_sigma=4.0):
     """
-    Loads an HDF5 slice, applies dataset-level z-score normalization, and optionally
-    computes 4D spatial symmetry feature channels (NDI) to return an 8D image array.
+    Loads an HDF5 slice and applies 9D z-score normalization.
+    Zeros out symmetry channels (4-7) for pixels lacking a contralateral partner.
     """
     file_path = os.path.join(DATASET_DIR, f"volume_{vol_num}_slice_{slice_num}.h5")
 
@@ -38,43 +30,34 @@ def load_and_normalize_slice(vol_num, slice_num, symmetric=False, blur_sigma=2.0
         mask = f["mask"][:].astype(np.float32)
 
     brain_mask = np.any(image > 1e-8, axis=-1)
-    eroded_mask = binary_erosion(brain_mask, iterations=2)
-    norm_slice = np.zeros_like(image)
+    mirrored_brain_mask = np.flipud(brain_mask)
+    symmetric_brain_mask = brain_mask & mirrored_brain_mask
 
-    # 1. Base Z-score normalization across brain pixels
-    if np.any(eroded_mask):
-        mu = VOLUME_MEANS[vol_num]
-        sigma = VOLUME_STDS[vol_num]
-        sigma = np.where(sigma == 0, 1e-8, sigma)
-        norm_slice[eroded_mask] = (image[eroded_mask] - mu) / sigma
-
-    # 2. Return 4D slice if symmetry features are not requested
-    if not symmetric:
-        return norm_slice, brain_mask, mask
-
-    # 3. Compute 4D Normalized Difference Index (NDI) for Symmetry (8D Mode)
-
-    # Reflect columns across the vertical midline to compare left/right hemispheres.
-    mirrored_eroded_mask = np.fliplr(eroded_mask)
-    symmetric_brain_mask = eroded_mask & mirrored_eroded_mask
-
-    blurred_raw = np.zeros_like(image)
-    for c in range(4):
-        blurred_raw[:, :, c] = gaussian_filter(image[:, :, c], sigma=blur_sigma)
-
-    mirrored_raw = np.fliplr(blurred_raw)
-    denom = np.maximum(blurred_raw + mirrored_raw, 1e-3)
+    # 1. Symmetry features (NDI)
+    blurred_raw = gaussian_filter(image, sigma=(blur_sigma, blur_sigma, 0.0))
+    mirrored_raw = np.flipud(blurred_raw)
+    denom = np.abs(blurred_raw) + np.abs(mirrored_raw) + 1e-4
     ndi_raw = np.clip((blurred_raw - mirrored_raw) / denom, -1.0, 1.0)
 
-    norm_ndi = np.zeros_like(ndi_raw)
-    if np.any(symmetric_brain_mask):
-        for c in range(4):
-            valid_pixels = ndi_raw[:, :, c][symmetric_brain_mask]
-            if len(valid_pixels) > 0 and np.std(valid_pixels) > 0:
-                m_ndi = np.mean(valid_pixels)
-                s_ndi = np.std(valid_pixels)
-                norm_ndi[:, :, c][symmetric_brain_mask] = (valid_pixels - m_ndi) / s_ndi
+    # 2. Boundary distance feature
+    dist_map = distance_transform_edt(brain_mask)
+    max_depth = np.max(dist_map)
+    normalized_depth = dist_map / max_depth if max_depth > 0 else np.zeros_like(dist_map)
 
-    D8_image = np.dstack([norm_slice, norm_ndi])
+    # 3. Stack all 9 unnormalized channels: (H, W, 9)
+    raw_9d = np.dstack([image, ndi_raw, normalized_depth[:, :, np.newaxis]])
 
-    return D8_image, brain_mask, mask, symmetric_brain_mask
+    # 4. Vectorized Z-Score Normalization
+    multimodal_image = np.zeros_like(raw_9d)
+    if np.any(brain_mask):
+        mu = VOLUME_MEANS[vol_num]
+        sigma = VOLUME_STDS[vol_num]
+
+        # Standardize entire brain
+        multimodal_image[brain_mask] = (raw_9d[brain_mask] - mu) / sigma
+
+        # Explicitly zero out symmetry channels (4-7) where no bilateral mirror exists
+        non_symmetric_brain = brain_mask & (~symmetric_brain_mask)
+        multimodal_image[non_symmetric_brain, 4:8] = 0.0
+
+    return multimodal_image, brain_mask, mask, symmetric_brain_mask

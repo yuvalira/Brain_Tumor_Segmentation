@@ -1,35 +1,52 @@
 import os
-
 import numpy as np
 from sklearn.mixture import GaussianMixture
-
-from config import *
+from config import PROJECT_ROOT, MAX_TRAINING_VOLUME, SLICE_NUM, RANDOM_SEED
 from utilities.utils import load_and_normalize_slice
 
 
-def fit_and_save_tumor_gmm(symmetric: bool = False):
-    """Fit a four-component GMM independently for each tumor tissue."""
-    num_classes = 3
-    num_components = 4
-    num_features = 8 if symmetric else 4
-    filename = "tumor_gmm_symmetric.npz" if symmetric else "tumor_gmm.npz"
+def fit_and_save_tumor_gmm(
+        num_components,
+        filename,
+        channel_indices,
+        num_classes,
+):
+    """
+    Fits a Gaussian Mixture Model independently for each tumor tissue class across
+    an arbitrary subset of feature channels and saves the learned parameters.
+
+    :param num_components: Number of mixture components (K) per class.
+    :param filename: Target output filename (e.g., 'tumor_gmm_raw.npz').
+    :param channel_indices: Channel indices to slice from the 9D feature tensor.
+    :param num_classes: Number of distinct tumor classes in the mask (default: 3).
+    """
     output_dir = os.path.join(PROJECT_ROOT, "saved_parameters", "statistical_models")
     os.makedirs(output_dir, exist_ok=True)
+    output_path = os.path.join(output_dir, filename)
 
+    num_features = len(channel_indices)
     class_pixels = [[] for _ in range(num_classes)]
     total_brain_pixels = 0
+
     print(
-        f"Collecting tumor pixels from volumes 1-{MAX_TRAINING_VOLUME} "
-        f"(symmetric={symmetric})..."
+        f"Collecting tumor pixels from volumes 1-{MAX_TRAINING_VOLUME} | "
+        f"Channels: {channel_indices} | K={num_components}..."
     )
 
     for vol_num in range(1, MAX_TRAINING_VOLUME + 1):
-        slice_output = load_and_normalize_slice(vol_num, SLICE_NUM, symmetric=symmetric)
-        features_image, brain_mask, tumor_masks = slice_output[:3]
+        image, brain_mask, tumor_masks, _ = load_and_normalize_slice(vol_num, SLICE_NUM)
+
+        # Select target feature channels
+        features_image = image[:, :, channel_indices]
         total_brain_pixels += int(np.sum(brain_mask))
 
         for class_index in range(num_classes):
-            class_mask = (tumor_masks[:, :, class_index] > 0) & brain_mask
+            # Extract ground truth mask for this specific tumor sub-region
+            if tumor_masks.ndim == 3:
+                class_mask = (tumor_masks[:, :, class_index] > 0) & brain_mask
+            else:
+                class_mask = (tumor_masks == (class_index + 1)) & brain_mask
+
             if np.any(class_mask):
                 class_pixels[class_index].append(
                     np.asarray(features_image[class_mask], dtype=np.float64)
@@ -50,7 +67,8 @@ def fit_and_save_tumor_gmm(symmetric: bool = False):
 
         X_class = np.concatenate(class_pixels[class_index], axis=0)
         pixel_counts[class_index] = len(X_class)
-        priors[class_index] = len(X_class) / total_brain_pixels
+        priors[class_index] = len(X_class) / total_brain_pixels if total_brain_pixels > 0 else 0.0
+
         if len(X_class) < num_components:
             raise ValueError(
                 f"Tumor class {class_index} has only {len(X_class)} pixels; "
@@ -70,12 +88,12 @@ def fit_and_save_tumor_gmm(symmetric: bool = False):
             random_state=RANDOM_SEED,
         )
         gmm.fit(X_class)
+
         weights[class_index] = gmm.weights_
         means[class_index] = gmm.means_
         covariances[class_index] = gmm.covariances_
-        print(f"  converged={gmm.converged_}, iterations={gmm.n_iter_}")
+        print(f"  Class {class_index} converged: {gmm.converged_}, iters: {gmm.n_iter_}")
 
-    output_path = os.path.join(output_dir, filename)
     np.savez(
         output_path,
         priors=priors,
@@ -84,10 +102,6 @@ def fit_and_save_tumor_gmm(symmetric: bool = False):
         covariances=covariances,
         pixel_counts=pixel_counts,
         total_brain_pixels=total_brain_pixels,
+        channel_indices=np.array(channel_indices),
     )
-    print(f"Tumor GMM parameters saved to '{output_path}'")
-
-
-if __name__ == "__main__":
-    fit_and_save_tumor_gmm(symmetric=False)
-    fit_and_save_tumor_gmm(symmetric=True)
+    print(f"Tumor GMM parameters successfully saved to '{output_path}'\n")
