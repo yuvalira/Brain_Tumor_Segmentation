@@ -4,11 +4,54 @@ from pathlib import Path
 import numpy as np
 import optuna
 
-from config import PROJECT_ROOT, RANDOM_SEED, SLICE_NUM
+from config import (
+    ALLOW_INTERNAL_CONTOURS,
+    ENTROPY_THRESHOLD_ALL,
+    ENTROPY_THRESHOLD_BOUNDARY_DISTANCE,
+    ENTROPY_THRESHOLD_RAW,
+    ENTROPY_THRESHOLD_SYMMETRIC,
+    LARGE_CONTOUR_MIN_AREA_DEFAULT,
+    MAX_EXPANSION_DIAMETER_DEFAULT,
+    MIN_NUM_PIXELS_PER_BLOB_DEFAULT,
+    POSTERIOR_THRESHOLD_ALL,
+    POSTERIOR_THRESHOLD_BOUNDARY_DISTANCE,
+    POSTERIOR_THRESHOLD_RAW,
+    POSTERIOR_THRESHOLD_SYMMETRIC,
+    PROJECT_ROOT,
+    RANDOM_SEED,
+    SLICE_NUM,
+    SOBEL_BINARIZATION_OTSU_FACTOR,
+    WEIGHTED_POSTERIOR_MEAN_THRESHOLD_ALL,
+    WEIGHTED_POSTERIOR_MEAN_THRESHOLD_BOUNDARY_DISTANCE,
+    WEIGHTED_POSTERIOR_MEAN_THRESHOLD_RAW,
+    WEIGHTED_POSTERIOR_MEAN_THRESHOLD_SYMMETRIC,
+)
 from evaluation.evaluate_test_set import dataset_eval
 
 
 OPTIMIZATION_PATH = Path(PROJECT_ROOT) / "saved_parameters" / "validation_optimization.json"
+REFERENCE_MODEL_PROBABILITY_PARAMS = {
+    "Raw (4D)": {
+        "posterior_mean_threshold": WEIGHTED_POSTERIOR_MEAN_THRESHOLD_RAW,
+        "entropy_expansion_threshold": ENTROPY_THRESHOLD_RAW,
+        "posterior_expansion_threshold": POSTERIOR_THRESHOLD_RAW,
+    },
+    "Boundary distance (5D)": {
+        "posterior_mean_threshold": WEIGHTED_POSTERIOR_MEAN_THRESHOLD_BOUNDARY_DISTANCE,
+        "entropy_expansion_threshold": ENTROPY_THRESHOLD_BOUNDARY_DISTANCE,
+        "posterior_expansion_threshold": POSTERIOR_THRESHOLD_BOUNDARY_DISTANCE,
+    },
+    "Symmetry (8D)": {
+        "posterior_mean_threshold": WEIGHTED_POSTERIOR_MEAN_THRESHOLD_SYMMETRIC,
+        "entropy_expansion_threshold": ENTROPY_THRESHOLD_SYMMETRIC,
+        "posterior_expansion_threshold": POSTERIOR_THRESHOLD_SYMMETRIC,
+    },
+    "Combined (9D)": {
+        "posterior_mean_threshold": WEIGHTED_POSTERIOR_MEAN_THRESHOLD_ALL,
+        "entropy_expansion_threshold": ENTROPY_THRESHOLD_ALL,
+        "posterior_expansion_threshold": POSTERIOR_THRESHOLD_ALL,
+    },
+}
 
 
 def _save_selection(selection, path=OPTIMIZATION_PATH):
@@ -38,30 +81,30 @@ def optimize_baseline_parameters(
     def objective(trial):
         image_params = {
             "min_pixels_per_blob": trial.suggest_int(
-                "min_pixels_per_blob", 10, 80, step=5
+                "min_pixels_per_blob", 10, 80
             ),
             "sobel_binarization_factor": trial.suggest_float(
-                "sobel_binarization_factor", 0.35, 0.85, step=0.05
+                "sobel_binarization_factor", 0.35, 0.85
             ),
             "allow_internal_contours": trial.suggest_categorical(
                 "allow_internal_contours", [False, True]
             ),
             "large_contour_min_area": trial.suggest_int(
-                "large_contour_min_area", 200, 12000, step=200
+                "large_contour_min_area", 20, 12000
             ),
             "max_expansion_diameter": trial.suggest_int(
-                "max_expansion_diameter", 10, 100, step=10
+                "max_expansion_diameter", 10, 100
             ),
         }
         probability_params = {
             "posterior_mean_threshold": trial.suggest_float(
-                "posterior_mean_threshold", 0.30, 0.90, step=0.02
+                "posterior_mean_threshold", 0.30, 0.90
             ),
             "entropy_expansion_threshold": trial.suggest_float(
-                "entropy_expansion_threshold", 0.02, 0.40, step=0.02
+                "entropy_expansion_threshold", 0.02, 0.40
             ),
             "posterior_expansion_threshold": trial.suggest_float(
-                "posterior_expansion_threshold", 0.02, 0.60, step=0.02
+                "posterior_expansion_threshold", 0.02, 0.60
             ),
         }
         dice, _ = dataset_eval(
@@ -77,6 +120,22 @@ def optimize_baseline_parameters(
         direction="maximize",
         sampler=optuna.samplers.TPESampler(seed=seed),
     )
+    reference_params = {
+        "min_pixels_per_blob": MIN_NUM_PIXELS_PER_BLOB_DEFAULT,
+        "sobel_binarization_factor": SOBEL_BINARIZATION_OTSU_FACTOR,
+        "allow_internal_contours": ALLOW_INTERNAL_CONTOURS,
+        "large_contour_min_area": LARGE_CONTOUR_MIN_AREA_DEFAULT,
+        "max_expansion_diameter": MAX_EXPANSION_DIAMETER_DEFAULT,
+        "posterior_mean_threshold": WEIGHTED_POSTERIOR_MEAN_THRESHOLD_RAW,
+        "entropy_expansion_threshold": ENTROPY_THRESHOLD_RAW,
+        "posterior_expansion_threshold": POSTERIOR_THRESHOLD_RAW,
+    }
+    study.enqueue_trial(reference_params)
+    study.enqueue_trial({
+        **reference_params,
+        # Reproduce the effective contour fallback used by the previous baseline.
+        "large_contour_min_area": MIN_NUM_PIXELS_PER_BLOB_DEFAULT,
+    })
     study.optimize(objective, n_trials=n_trials, show_progress_bar=True)
 
     image_keys = [
@@ -133,13 +192,13 @@ def optimize_model_probability_parameters(
     def objective(trial):
         probability_params = {
             "posterior_mean_threshold": trial.suggest_float(
-                "posterior_mean_threshold", 0.30, 0.90, step=0.02
+                "posterior_mean_threshold", 0.30, 0.90
             ),
             "entropy_expansion_threshold": trial.suggest_float(
-                "entropy_expansion_threshold", 0.02, 0.40, step=0.02
+                "entropy_expansion_threshold", 0.02, 0.40
             ),
             "posterior_expansion_threshold": trial.suggest_float(
-                "posterior_expansion_threshold", 0.02, 0.60, step=0.02
+                "posterior_expansion_threshold", 0.02, 0.60
             ),
         }
         dice, _ = dataset_eval(
@@ -155,6 +214,8 @@ def optimize_model_probability_parameters(
         direction="maximize",
         sampler=optuna.samplers.TPESampler(seed=seed),
     )
+    if model_name in REFERENCE_MODEL_PROBABILITY_PARAMS:
+        study.enqueue_trial(REFERENCE_MODEL_PROBABILITY_PARAMS[model_name])
     study.optimize(objective, n_trials=n_trials, show_progress_bar=True)
 
     selected_parameters["model_probability_params"][model_name] = study.best_params
