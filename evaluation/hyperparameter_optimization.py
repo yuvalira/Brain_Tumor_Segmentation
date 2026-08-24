@@ -12,8 +12,8 @@ OPTIMIZATION_PATH = Path(PROJECT_ROOT) / "saved_parameters" / "validation_optimi
 
 
 def _optimize_shared_image_parameters(
-    model_specs,
-    initial_probability_params,
+    baseline_files,
+    baseline_probability_params,
     validation_volumes,
     n_trials,
     seed,
@@ -26,17 +26,14 @@ def _optimize_shared_image_parameters(
             "large_contour_min_area": trial.suggest_int("large_contour_min_area", 200, 12000, step=200),
             "max_expansion_diameter": trial.suggest_int("max_expansion_diameter", 10, 100, step=10),
         }
-        scores = []
-        for model_name, files in model_specs.items():
-            dice, _ = dataset_eval(
-                validation_volumes,
-                slice_num=SLICE_NUM,
-                image_processing_params=shared,
-                **files,
-                **initial_probability_params[model_name],
-            )
-            scores.append(float(np.mean(dice)))
-        return float(np.mean(scores))
+        dice, _ = dataset_eval(
+            validation_volumes,
+            slice_num=SLICE_NUM,
+            image_processing_params=shared,
+            **baseline_files,
+            **baseline_probability_params,
+        )
+        return float(np.mean(dice))
 
     study = optuna.create_study(
         direction="maximize",
@@ -83,22 +80,25 @@ def optimize_validation_parameters(
     model_specs,
     initial_probability_params,
     validation_volumes,
-    n_shared_trials=60,
-    n_model_trials=100,
+    baseline_name="Raw (4D)",
+    n_shared_trials=30,
+    n_model_trials=60,
     seed=RANDOM_SEED,
     save_path=OPTIMIZATION_PATH,
 ):
-    """Tune shared spatial parameters, then tune each model independently.
+    """Tune spatial processing on the baseline, then calibrate every model.
 
-    Stage 1 selects one image-processing configuration by maximizing the mean
-    validation Dice across all models. Stage 2 freezes that configuration and
-    runs an independent probability-threshold study for every model. Test
-    volumes are never used.
+    Stage 1 selects one image-processing configuration using only the baseline
+    model. Stage 2 freezes that configuration and runs an independent
+    probability-threshold study for the baseline and every improved model.
+    Test volumes are never used.
     """
     validation_volumes = list(validation_volumes)
+    if baseline_name not in model_specs:
+        raise KeyError(f"Baseline model '{baseline_name}' is not in model_specs.")
     shared_study = _optimize_shared_image_parameters(
-        model_specs,
-        initial_probability_params,
+        model_specs[baseline_name],
+        initial_probability_params[baseline_name],
         validation_volumes,
         n_shared_trials,
         seed,
@@ -123,10 +123,11 @@ def optimize_validation_parameters(
     selected = {
         "selection_split": f"volumes {validation_volumes[0]}-{validation_volumes[-1]}",
         "selection_method": (
-            "Stage 1: shared image-processing parameters maximize mean validation "
-            "Dice across all models. Stage 2: separate Optuna study per model with "
-            "shared parameters frozen."
+            f"Stage 1: image-processing parameters maximize {baseline_name} "
+            "validation Dice. Stage 2: separate probability-threshold study for "
+            "each model with the baseline-selected image parameters frozen."
         ),
+        "baseline_model": baseline_name,
         "shared_trials": n_shared_trials,
         "model_trials_each": n_model_trials,
         "shared_best_validation_objective": shared_study.best_value,
