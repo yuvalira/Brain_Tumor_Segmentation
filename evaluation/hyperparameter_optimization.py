@@ -11,142 +11,154 @@ from evaluation.evaluate_test_set import dataset_eval
 OPTIMIZATION_PATH = Path(PROJECT_ROOT) / "saved_parameters" / "validation_optimization.json"
 
 
-def _optimize_shared_image_parameters(
-    baseline_files,
-    baseline_probability_params,
-    validation_volumes,
-    n_trials,
-    seed,
-):
-    def objective(trial):
-        shared = {
-            "min_pixels_per_blob": trial.suggest_int("min_pixels_per_blob", 10, 80, step=5),
-            "sobel_binarization_factor": trial.suggest_float(
-                "sobel_binarization_factor", 0.35, 0.85, step=0.05
-            ),
-            "allow_internal_contours": trial.suggest_categorical("allow_internal_contours", [False, True]),
-            "large_contour_min_area": trial.suggest_int("large_contour_min_area", 200, 12000, step=200),
-            "max_expansion_diameter": trial.suggest_int("max_expansion_diameter", 10, 100, step=10),
-        }
-        dice, _ = dataset_eval(
-            validation_volumes,
-            slice_num=SLICE_NUM,
-            image_processing_params=shared,
-            **baseline_files,
-            **baseline_probability_params,
-        )
-        return float(np.mean(dice))
-
-    study = optuna.create_study(
-        direction="maximize",
-        sampler=optuna.samplers.TPESampler(seed=seed),
-    )
-    study.optimize(objective, n_trials=n_trials, show_progress_bar=True)
-    return study
-
-
-def _optimize_one_model(
-    files,
-    shared_params,
-    validation_volumes,
-    n_trials,
-    seed,
-):
-    def objective(trial):
-        dice, _ = dataset_eval(
-            validation_volumes,
-            slice_num=SLICE_NUM,
-            image_processing_params=shared_params,
-            posterior_mean_threshold=trial.suggest_float(
-                "posterior_mean_threshold", 0.30, 0.90, step=0.02
-            ),
-            entropy_expansion_threshold=trial.suggest_float(
-                "entropy_expansion_threshold", 0.02, 0.40, step=0.02
-            ),
-            posterior_expansion_threshold=trial.suggest_float(
-                "posterior_expansion_threshold", 0.02, 0.60, step=0.02
-            ),
-            **files,
-        )
-        return float(np.mean(dice))
-
-    study = optuna.create_study(
-        direction="maximize",
-        sampler=optuna.samplers.TPESampler(seed=seed),
-    )
-    study.optimize(objective, n_trials=n_trials, show_progress_bar=True)
-    return study
-
-
-def optimize_validation_parameters(
-    model_specs,
-    initial_probability_params,
-    validation_volumes,
-    baseline_name="Raw (4D)",
-    n_shared_trials=30,
-    n_model_trials=60,
-    seed=RANDOM_SEED,
-    save_path=OPTIMIZATION_PATH,
-):
-    """Tune spatial processing on the baseline, then calibrate every model.
-
-    Stage 1 selects one image-processing configuration using only the baseline
-    model. Stage 2 freezes that configuration and runs an independent
-    probability-threshold study for the baseline and every improved model.
-    Test volumes are never used.
-    """
-    validation_volumes = list(validation_volumes)
-    if baseline_name not in model_specs:
-        raise KeyError(f"Baseline model '{baseline_name}' is not in model_specs.")
-    shared_study = _optimize_shared_image_parameters(
-        model_specs[baseline_name],
-        initial_probability_params[baseline_name],
-        validation_volumes,
-        n_shared_trials,
-        seed,
-    )
-    shared_params = shared_study.best_params
-
-    model_studies = {}
-    model_params = {}
-    validation_scores = {}
-    for index, (model_name, files) in enumerate(model_specs.items()):
-        study = _optimize_one_model(
-            files,
-            shared_params,
-            validation_volumes,
-            n_model_trials,
-            seed + index + 1,
-        )
-        model_studies[model_name] = study
-        model_params[model_name] = study.best_params
-        validation_scores[model_name] = study.best_value
-
-    selected = {
-        "selection_split": f"volumes {validation_volumes[0]}-{validation_volumes[-1]}",
-        "selection_method": (
-            f"Stage 1: image-processing parameters maximize {baseline_name} "
-            "validation Dice. Stage 2: separate probability-threshold study for "
-            "each model with the baseline-selected image parameters frozen."
-        ),
-        "baseline_model": baseline_name,
-        "shared_trials": n_shared_trials,
-        "model_trials_each": n_model_trials,
-        "shared_best_validation_objective": shared_study.best_value,
-        "shared_image_processing_params": shared_params,
-        "model_probability_params": model_params,
-        "model_validation_mean_dice": validation_scores,
-    }
-    save_path = Path(save_path)
-    save_path.parent.mkdir(parents=True, exist_ok=True)
-    save_path.write_text(json.dumps(selected, indent=2), encoding="utf-8")
-    return selected, {"Shared image processing": shared_study, **model_studies}
+def _save_selection(selection, path=OPTIMIZATION_PATH):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(selection, indent=2), encoding="utf-8")
 
 
 def load_validation_parameters(path=OPTIMIZATION_PATH):
     path = Path(path)
     if not path.exists():
-        raise FileNotFoundError(
-            f"{path} does not exist. Run optimize_validation_parameters first."
-        )
+        raise FileNotFoundError(f"{path} does not exist.")
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def optimize_baseline_parameters(
+    baseline_name,
+    baseline_files,
+    validation_volumes,
+    n_trials=60,
+    seed=RANDOM_SEED,
+    save_path=OPTIMIZATION_PATH,
+):
+    """Jointly optimize baseline spatial processing and probability thresholds."""
+    validation_volumes = list(validation_volumes)
+
+    def objective(trial):
+        image_params = {
+            "min_pixels_per_blob": trial.suggest_int(
+                "min_pixels_per_blob", 10, 80, step=5
+            ),
+            "sobel_binarization_factor": trial.suggest_float(
+                "sobel_binarization_factor", 0.35, 0.85, step=0.05
+            ),
+            "allow_internal_contours": trial.suggest_categorical(
+                "allow_internal_contours", [False, True]
+            ),
+            "large_contour_min_area": trial.suggest_int(
+                "large_contour_min_area", 200, 12000, step=200
+            ),
+            "max_expansion_diameter": trial.suggest_int(
+                "max_expansion_diameter", 10, 100, step=10
+            ),
+        }
+        probability_params = {
+            "posterior_mean_threshold": trial.suggest_float(
+                "posterior_mean_threshold", 0.30, 0.90, step=0.02
+            ),
+            "entropy_expansion_threshold": trial.suggest_float(
+                "entropy_expansion_threshold", 0.02, 0.40, step=0.02
+            ),
+            "posterior_expansion_threshold": trial.suggest_float(
+                "posterior_expansion_threshold", 0.02, 0.60, step=0.02
+            ),
+        }
+        dice, _ = dataset_eval(
+            validation_volumes,
+            slice_num=SLICE_NUM,
+            image_processing_params=image_params,
+            **baseline_files,
+            **probability_params,
+        )
+        return float(np.mean(dice))
+
+    study = optuna.create_study(
+        direction="maximize",
+        sampler=optuna.samplers.TPESampler(seed=seed),
+    )
+    study.optimize(objective, n_trials=n_trials, show_progress_bar=True)
+
+    image_keys = [
+        "min_pixels_per_blob",
+        "sobel_binarization_factor",
+        "allow_internal_contours",
+        "large_contour_min_area",
+        "max_expansion_diameter",
+    ]
+    probability_keys = [
+        "posterior_mean_threshold",
+        "entropy_expansion_threshold",
+        "posterior_expansion_threshold",
+    ]
+    selection = {
+        "workflow_version": "baseline_then_improvements_v1",
+        "selection_split": (
+            f"volumes {validation_volumes[0]}-{validation_volumes[-1]}"
+        ),
+        "baseline_model": baseline_name,
+        "selection_method": (
+            "Baseline study jointly selects image-processing parameters and "
+            "baseline probability thresholds. Improved models reuse the frozen "
+            "image-processing parameters and optimize only their probability thresholds."
+        ),
+        "shared_image_processing_params": {
+            key: study.best_params[key] for key in image_keys
+        },
+        "model_probability_params": {
+            baseline_name: {
+                key: study.best_params[key] for key in probability_keys
+            }
+        },
+        "model_validation_mean_dice": {baseline_name: study.best_value},
+        "trial_counts": {baseline_name: n_trials},
+    }
+    _save_selection(selection, save_path)
+    return selection, study
+
+
+def optimize_model_probability_parameters(
+    model_name,
+    model_files,
+    validation_volumes,
+    selected_parameters,
+    n_trials=60,
+    seed=RANDOM_SEED,
+    save_path=OPTIMIZATION_PATH,
+):
+    """Optimize one improved model and checkpoint its selected thresholds."""
+    validation_volumes = list(validation_volumes)
+    shared_params = selected_parameters["shared_image_processing_params"]
+
+    def objective(trial):
+        probability_params = {
+            "posterior_mean_threshold": trial.suggest_float(
+                "posterior_mean_threshold", 0.30, 0.90, step=0.02
+            ),
+            "entropy_expansion_threshold": trial.suggest_float(
+                "entropy_expansion_threshold", 0.02, 0.40, step=0.02
+            ),
+            "posterior_expansion_threshold": trial.suggest_float(
+                "posterior_expansion_threshold", 0.02, 0.60, step=0.02
+            ),
+        }
+        dice, _ = dataset_eval(
+            validation_volumes,
+            slice_num=SLICE_NUM,
+            image_processing_params=shared_params,
+            **model_files,
+            **probability_params,
+        )
+        return float(np.mean(dice))
+
+    study = optuna.create_study(
+        direction="maximize",
+        sampler=optuna.samplers.TPESampler(seed=seed),
+    )
+    study.optimize(objective, n_trials=n_trials, show_progress_bar=True)
+
+    selected_parameters["model_probability_params"][model_name] = study.best_params
+    selected_parameters["model_validation_mean_dice"][model_name] = study.best_value
+    selected_parameters.setdefault("trial_counts", {})[model_name] = n_trials
+    _save_selection(selected_parameters, save_path)
+    return selected_parameters, study
