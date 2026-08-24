@@ -33,7 +33,15 @@ def eval_vol(
     posterior_mean_threshold: float = WEIGHTED_POSTERIOR_MEAN_THRESHOLD_ALL,
     entropy_expansion_threshold: float = ENTROPY_THRESHOLD_ALL,
     posterior_expansion_threshold: float = POSTERIOR_THRESHOLD_ALL,
+    min_pixels_per_blob: int = MIN_NUM_PIXELS_PER_BLOB_DEFAULT,
+    sobel_binarization_factor: float = SOBEL_BINARIZATION_OTSU_FACTOR,
+    allow_internal_contours: bool = ALLOW_INTERNAL_CONTOURS,
+    large_contour_min_area: int = LARGE_CONTOUR_MIN_AREA_DEFAULT,
+    top_posterior_mean_threshold: float = TOP_POSTERIOR_MEAN_THRESHOLD_DEFAULT,
+    high_posterior_fraction_threshold: float = HIGH_POSTERIOR_FRACTION_THRESHOLD_DEFAULT,
+    max_expansion_diameter: int = MAX_EXPANSION_DIAMETER_DEFAULT,
     show_plots: bool = True,
+    return_details: bool = False,
 ):
     """
     Runs the statistical GMM and spatial edge-expansion segmentation pipeline on a single slice.
@@ -70,7 +78,13 @@ def eval_vol(
     edge_map = sobel_edge_detection(posteriors, brain_mask)
 
     # Extract binary closed blob channels[cite: 3]
-    blob_array = contour_detection(edge_map, brain_mask=brain_mask)
+    blob_array = contour_detection(
+        edge_map,
+        brain_mask=brain_mask,
+        min_pixels_per_blob=min_pixels_per_blob,
+        allow_internal=allow_internal_contours,
+        binarization_factor=sobel_binarization_factor,
+    )
 
     # -------------------------------------------------------------------------
     # Step 3: Contour Classification & Seed Expansion
@@ -81,6 +95,9 @@ def eval_vol(
         posterior_array=posteriors,
         entropy_map=entropy_map,
         blob_class_threshold=posterior_mean_threshold,
+        large_contour_min_area=large_contour_min_area,
+        top_posterior_mean_threshold=top_posterior_mean_threshold,
+        high_posterior_fraction_threshold=high_posterior_fraction_threshold,
     )
 
     # Region grow valid seeds into adjacent ambiguous high-entropy space[cite: 7]
@@ -91,6 +108,7 @@ def eval_vol(
         brain_mask=brain_mask,
         entropy_thresh=entropy_expansion_threshold,
         posterior_min=posterior_expansion_threshold,
+        max_expansion_diameter=max_expansion_diameter,
     )
 
     # -------------------------------------------------------------------------
@@ -131,7 +149,7 @@ def eval_vol(
         final_segmentation,
         save_path=None)
 
-    return {
+    result = {
         "final_segmentation": final_segmentation,
         "posteriors": posteriors,
         "entropy_map": entropy_map,
@@ -141,3 +159,30 @@ def eval_vol(
         "gt_mask": gt_mask,
         "brain_mask": brain_mask,
     }
+    if return_details:
+        prediction = final_segmentation.astype(bool)
+        ground_truth = np.any(gt_mask > 0, axis=-1) if gt_mask.ndim == 3 else gt_mask > 0
+        intersection = int(np.logical_and(prediction, ground_truth).sum())
+        union = int(np.logical_or(prediction, ground_truth).sum())
+        pred_size = int(prediction.sum())
+        gt_size = int(ground_truth.sum())
+        if pred_size == 0 and gt_size == 0:
+            dice = iou = precision = recall = 1.0
+        else:
+            dice = 2.0 * intersection / (pred_size + gt_size) if pred_size + gt_size else 0.0
+            iou = intersection / union if union else 0.0
+            precision = intersection / pred_size if pred_size else 0.0
+            recall = intersection / gt_size if gt_size else 0.0
+        result.update({
+            "image": image,
+            "prediction": prediction,
+            "ground_truth": ground_truth,
+            "dice": dice,
+            "iou": iou,
+            "precision": precision,
+            "recall": recall,
+            "intersection": intersection,
+            "pred_size": pred_size,
+            "gt_size": gt_size,
+        })
+    return result
