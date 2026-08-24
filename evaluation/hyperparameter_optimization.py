@@ -21,7 +21,9 @@ def _optimize_shared_image_parameters(
     def objective(trial):
         shared = {
             "min_pixels_per_blob": trial.suggest_int("min_pixels_per_blob", 10, 80, step=5),
-            "sobel_binarization_factor": trial.suggest_float("sobel_otsu_factor", 0.35, 0.85, step=0.05),
+            "sobel_binarization_factor": trial.suggest_float(
+                "sobel_binarization_factor", 0.35, 0.85, step=0.05
+            ),
             "allow_internal_contours": trial.suggest_categorical("allow_internal_contours", [False, True]),
             "large_contour_min_area": trial.suggest_int("large_contour_min_area", 200, 12000, step=200),
             "max_expansion_diameter": trial.suggest_int("max_expansion_diameter", 10, 100, step=10),
