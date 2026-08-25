@@ -70,6 +70,7 @@ def optimize_baseline_parameters(
     baseline_name,
     baseline_files,
     validation_volumes,
+    split_id,
     n_trials=60,
     seed=RANDOM_SEED,
     save_path=OPTIMIZATION_PATH,
@@ -140,10 +141,10 @@ def optimize_baseline_parameters(
         "posterior_expansion_threshold",
     ]
     selection = {
-        "workflow_version": "baseline_then_improvements_v2_no_large_contour",
-        "selection_split": (
-            f"volumes {validation_volumes[0]}-{validation_volumes[-1]}"
-        ),
+        "workflow_version": "balanced_patient_split_v1",
+        "split_id": split_id,
+        "selection_split": f"{len(validation_volumes)} stratified validation patients",
+        "validation_volumes": list(map(int, validation_volumes)),
         "baseline_model": baseline_name,
         "selection_method": (
             "Baseline study jointly selects image-processing parameters and "

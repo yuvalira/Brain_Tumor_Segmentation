@@ -10,6 +10,7 @@ def fit_and_save_tumor_gmm(
         filename,
         channel_indices,
         num_classes,
+        training_volumes=None,
 ):
     """
     Fits a Gaussian Mixture Model independently for each tumor tissue class across
@@ -20,6 +21,11 @@ def fit_and_save_tumor_gmm(
     :param channel_indices: Channel indices to slice from the 9D feature tensor.
     :param num_classes: Number of distinct tumor classes in the mask (default: 3).
     """
+    training_volumes = np.asarray(
+        list(training_volumes) if training_volumes is not None
+        else range(1, MAX_TRAINING_VOLUME + 1),
+        dtype=int,
+    )
     output_dir = os.path.join(PROJECT_ROOT, "saved_parameters", "statistical_models")
     os.makedirs(output_dir, exist_ok=True)
     output_path = os.path.join(output_dir, filename)
@@ -29,11 +35,11 @@ def fit_and_save_tumor_gmm(
     total_brain_pixels = 0
 
     print(
-        f"Collecting tumor pixels from volumes 1-{MAX_TRAINING_VOLUME} | "
+        f"Collecting tumor pixels from {len(training_volumes)} training volumes | "
         f"Channels: {channel_indices} | K={num_components}..."
     )
 
-    for vol_num in range(1, MAX_TRAINING_VOLUME + 1):
+    for vol_num in training_volumes:
         image, brain_mask, tumor_masks, _ = load_and_normalize_slice(vol_num, SLICE_NUM)
 
         # Select target feature channels
@@ -103,5 +109,6 @@ def fit_and_save_tumor_gmm(
         pixel_counts=pixel_counts,
         total_brain_pixels=total_brain_pixels,
         channel_indices=np.array(channel_indices),
+        training_volumes=training_volumes,
     )
     print(f"Tumor GMM parameters successfully saved to '{output_path}'\n")

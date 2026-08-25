@@ -5,7 +5,9 @@ from sklearn.mixture import GaussianMixture
 from utilities.utils import load_and_normalize_slice
 
 
-def fit_and_save_healthy_gmm(num_components, filename, channel_indices):
+def fit_and_save_healthy_gmm(
+    num_components, filename, channel_indices, training_volumes=None
+):
   """Fits a Gaussian Mixture Model on healthy brain tissue voxels across an arbitrary
 
   subset of feature channels and saves the learned parameters.
@@ -16,6 +18,11 @@ def fit_and_save_healthy_gmm(num_components, filename, channel_indices):
   :param channel_indices: List or range of channel indices to select from the 9D
   tensor.
   """
+  training_volumes = np.asarray(
+      list(training_volumes) if training_volumes is not None
+      else range(1, MAX_TRAINING_VOLUME + 1),
+      dtype=int,
+  )
   output_dir = os.path.join(
       PROJECT_ROOT, "saved_parameters", "statistical_models"
   )
@@ -33,12 +40,14 @@ def fit_and_save_healthy_gmm(num_components, filename, channel_indices):
   total_dataset_healthy_pixels = 0
   total_dataset_brain_pixels = 0
 
-  print(
-      f"Processing training volumes 1 to {MAX_TRAINING_VOLUME} | Channels:"
-      f" {channel_indices} | K={num_components}..."
-  )
+  print(f"Processing {len(training_volumes)} training volumes | "
+        f"Channels: {channel_indices} | K={num_components}...")
 
-  for vol_num in range(1, MAX_TRAINING_VOLUME + 1):
+  rng = np.random.default_rng(RANDOM_SEED)
+  per_volume_limit = int(np.ceil(
+      NUM_HEALTHY_TRAINING_SAMPLES / len(training_volumes)
+  ))
+  for volume_index, vol_num in enumerate(training_volumes, start=1):
     image, brain_mask, mask, _ = load_and_normalize_slice(vol_num, SLICE_NUM)
 
     # Slice only the requested feature channels
@@ -60,7 +69,10 @@ def fit_and_save_healthy_gmm(num_components, filename, channel_indices):
     if (sampled_pixel_counter < NUM_HEALTHY_TRAINING_SAMPLES) and (
         n_healthy > 0
     ):
-      valid_features = features_image[healthy_mask]  # Shape: (N_valid, D)
+      valid_features = features_image[healthy_mask]
+      if len(valid_features) > per_volume_limit:
+        selected = rng.choice(len(valid_features), per_volume_limit, replace=False)
+        valid_features = valid_features[selected]
       num_valid = valid_features.shape[0]
       remaining_capacity = NUM_HEALTHY_TRAINING_SAMPLES - sampled_pixel_counter
 
@@ -74,9 +86,9 @@ def fit_and_save_healthy_gmm(num_components, filename, channel_indices):
       ] = valid_features.T
       sampled_pixel_counter += num_valid
 
-      if vol_num % 10 == 0 or sampled_pixel_counter >= NUM_HEALTHY_TRAINING_SAMPLES:
+      if volume_index % 25 == 0 or volume_index == len(training_volumes):
         print(
-            f"Vol {vol_num}/{MAX_TRAINING_VOLUME} | Feature Buffer:"
+            f"Patient {volume_index}/{len(training_volumes)} | Feature Buffer:"
             f" {sampled_pixel_counter}/{NUM_HEALTHY_TRAINING_SAMPLES}"
         )
 
@@ -117,10 +129,6 @@ def fit_and_save_healthy_gmm(num_components, filename, channel_indices):
       means=gmm.means_,
       covariances=gmm.covariances_,
       channel_indices=np.array(channel_indices),
+      training_volumes=training_volumes,
   )
   print(f"GMM parameters successfully saved to '{output_file}'\n")
-
-if __name__ == "__main__":
-    # Example function calls
-    fit_and_save_healthy_gmm()
-    fit_and_save_healthy_gmm()
