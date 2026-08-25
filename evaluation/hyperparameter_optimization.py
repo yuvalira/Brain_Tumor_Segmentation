@@ -10,7 +10,6 @@ from config import (
     ENTROPY_THRESHOLD_BOUNDARY_DISTANCE,
     ENTROPY_THRESHOLD_RAW,
     ENTROPY_THRESHOLD_SYMMETRIC,
-    LARGE_CONTOUR_MIN_AREA_DEFAULT,
     MAX_EXPANSION_DIAMETER_DEFAULT,
     MIN_NUM_PIXELS_PER_BLOB_DEFAULT,
     POSTERIOR_THRESHOLD_ALL,
@@ -89,9 +88,6 @@ def optimize_baseline_parameters(
             "allow_internal_contours": trial.suggest_categorical(
                 "allow_internal_contours", [False, True]
             ),
-            "large_contour_min_area": trial.suggest_int(
-                "large_contour_min_area", 20, 12000
-            ),
             "max_expansion_diameter": trial.suggest_int(
                 "max_expansion_diameter", 10, 100
             ),
@@ -124,25 +120,18 @@ def optimize_baseline_parameters(
         "min_pixels_per_blob": MIN_NUM_PIXELS_PER_BLOB_DEFAULT,
         "sobel_binarization_factor": SOBEL_BINARIZATION_OTSU_FACTOR,
         "allow_internal_contours": ALLOW_INTERNAL_CONTOURS,
-        "large_contour_min_area": LARGE_CONTOUR_MIN_AREA_DEFAULT,
         "max_expansion_diameter": MAX_EXPANSION_DIAMETER_DEFAULT,
         "posterior_mean_threshold": WEIGHTED_POSTERIOR_MEAN_THRESHOLD_RAW,
         "entropy_expansion_threshold": ENTROPY_THRESHOLD_RAW,
         "posterior_expansion_threshold": POSTERIOR_THRESHOLD_RAW,
     }
     study.enqueue_trial(reference_params)
-    study.enqueue_trial({
-        **reference_params,
-        # Reproduce the effective contour fallback used by the previous baseline.
-        "large_contour_min_area": MIN_NUM_PIXELS_PER_BLOB_DEFAULT,
-    })
     study.optimize(objective, n_trials=n_trials, show_progress_bar=True)
 
     image_keys = [
         "min_pixels_per_blob",
         "sobel_binarization_factor",
         "allow_internal_contours",
-        "large_contour_min_area",
         "max_expansion_diameter",
     ]
     probability_keys = [
@@ -151,7 +140,7 @@ def optimize_baseline_parameters(
         "posterior_expansion_threshold",
     ]
     selection = {
-        "workflow_version": "baseline_then_improvements_v1",
+        "workflow_version": "baseline_then_improvements_v2_no_large_contour",
         "selection_split": (
             f"volumes {validation_volumes[0]}-{validation_volumes[-1]}"
         ),

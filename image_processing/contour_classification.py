@@ -20,21 +20,11 @@ def contour_classification(
     posterior_array: np.ndarray,
     entropy_map: np.ndarray,
     blob_class_threshold=WEIGHTED_POSTERIOR_MEAN_THRESHOLD_ALL,
-    large_contour_min_area=LARGE_CONTOUR_MIN_AREA_DEFAULT,
-    top_posterior_mean_threshold=TOP_POSTERIOR_MEAN_THRESHOLD_DEFAULT,
-    high_posterior_fraction_threshold=HIGH_POSTERIOR_FRACTION_THRESHOLD_DEFAULT,
 ) -> tuple[np.ndarray, list[bool]]:
-    """Accept contours using the original score or concentrated tumor evidence.
-
-    A contour is accepted when its entropy-weighted tumor score reaches the
-    normal threshold. Large heterogeneous contours can also be accepted when
-    their strongest 20% of pixels and high-posterior pixel fraction both show
-    sufficient tumor evidence.
-    """
+    """Accept contours using their entropy-weighted tumor posterior score."""
     if blob_array.shape[-1] == 0:
         return np.zeros((*blob_array.shape[:2], 0), dtype=bool), []
 
-    tumor_posterior = np.sum(posterior_array[:, :, -3:], axis=-1)
     tumor_blobs = []
     is_tumor_list = []
 
@@ -44,16 +34,7 @@ def contour_classification(
             contour, posterior_array, entropy_map
         )
         weighted_score = np.sum(normalized_scores[-3:])
-        pixel_posteriors = tumor_posterior[contour]
-        top_count = max(1, int(np.ceil(0.2 * pixel_posteriors.size)))
-        top_mean = np.partition(pixel_posteriors, -top_count)[-top_count:].mean()
-        high_fraction = np.mean(pixel_posteriors >= blob_class_threshold)
-
-        accepted = weighted_score >= blob_class_threshold or (
-            pixel_posteriors.size >= large_contour_min_area
-            and top_mean >= top_posterior_mean_threshold
-            and high_fraction >= high_posterior_fraction_threshold
-        )
+        accepted = weighted_score >= blob_class_threshold
         is_tumor_list.append(bool(accepted))
         if accepted:
             tumor_blobs.append(contour)

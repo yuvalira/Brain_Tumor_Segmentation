@@ -36,9 +36,6 @@ def eval_vol(
     min_pixels_per_blob: int = MIN_NUM_PIXELS_PER_BLOB_DEFAULT,
     sobel_binarization_factor: float = SOBEL_BINARIZATION_OTSU_FACTOR,
     allow_internal_contours: bool = ALLOW_INTERNAL_CONTOURS,
-    large_contour_min_area: int = LARGE_CONTOUR_MIN_AREA_DEFAULT,
-    top_posterior_mean_threshold: float = TOP_POSTERIOR_MEAN_THRESHOLD_DEFAULT,
-    high_posterior_fraction_threshold: float = HIGH_POSTERIOR_FRACTION_THRESHOLD_DEFAULT,
     max_expansion_diameter: int = MAX_EXPANSION_DIAMETER_DEFAULT,
     show_plots: bool = True,
     return_details: bool = False,
@@ -95,9 +92,6 @@ def eval_vol(
         posterior_array=posteriors,
         entropy_map=entropy_map,
         blob_class_threshold=posterior_mean_threshold,
-        large_contour_min_area=large_contour_min_area,
-        top_posterior_mean_threshold=top_posterior_mean_threshold,
-        high_posterior_fraction_threshold=high_posterior_fraction_threshold,
     )
 
     # Region grow valid seeds into adjacent ambiguous high-entropy space[cite: 7]
