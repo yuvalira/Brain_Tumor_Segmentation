@@ -277,6 +277,3 @@ The results demonstrate that lightweight anatomical priors can improve classical
 
 * Etamar Rothstein 
 * Yuval Ratzabi
-
-https://github.com/yuvalira/Brain_Tumor_Segmentation
-
