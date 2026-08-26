@@ -83,4 +83,5 @@ The notebook trains or loads the GMMs, selects hyperparameters using the validat
 ## Authors
 
 Etamar Rothstein and Yuval Ratzabi
+
 Ben-Gurion University of the Negev
