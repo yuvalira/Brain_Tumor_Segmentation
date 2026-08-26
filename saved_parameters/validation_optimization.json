@@ -1,0 +1,99 @@
+{
+  "workflow_version": "balanced_patient_split_v1",
+  "split_id": "7abfb7c10f61",
+  "selection_split": "50 stratified validation patients",
+  "validation_volumes": [
+    288,
+    102,
+    14,
+    313,
+    16,
+    49,
+    307,
+    18,
+    95,
+    271,
+    134,
+    115,
+    35,
+    178,
+    59,
+    353,
+    171,
+    100,
+    339,
+    305,
+    42,
+    175,
+    194,
+    181,
+    73,
+    350,
+    70,
+    40,
+    104,
+    267,
+    281,
+    292,
+    86,
+    208,
+    265,
+    332,
+    9,
+    328,
+    2,
+    250,
+    217,
+    280,
+    297,
+    268,
+    142,
+    186,
+    261,
+    262,
+    224,
+    117
+  ],
+  "baseline_model": "Raw (4D)",
+  "selection_method": "Baseline study jointly selects image-processing parameters and baseline probability thresholds. Improved models reuse the frozen image-processing parameters and optimize only their probability thresholds.",
+  "shared_image_processing_params": {
+    "min_pixels_per_blob": 39,
+    "sobel_binarization_factor": 0.6113724880768976,
+    "allow_internal_contours": true,
+    "max_expansion_diameter": 36
+  },
+  "model_probability_params": {
+    "Raw (4D)": {
+      "posterior_mean_threshold": 0.31508768259435294,
+      "entropy_expansion_threshold": 0.1444533285673328,
+      "posterior_expansion_threshold": 0.25312844559145814
+    },
+    "Boundary distance (5D)": {
+      "posterior_mean_threshold": 0.5537187614051647,
+      "entropy_expansion_threshold": 0.0829162303688632,
+      "posterior_expansion_threshold": 0.14021910985469482
+    },
+    "Symmetry (8D)": {
+      "posterior_mean_threshold": 0.44370037934746276,
+      "entropy_expansion_threshold": 0.09437531262684493,
+      "posterior_expansion_threshold": 0.26293133192408824
+    },
+    "Combined (9D)": {
+      "posterior_mean_threshold": 0.46116751502767234,
+      "entropy_expansion_threshold": 0.14924793237151568,
+      "posterior_expansion_threshold": 0.2579181192021394
+    }
+  },
+  "model_validation_mean_dice": {
+    "Raw (4D)": 0.7031142504650861,
+    "Boundary distance (5D)": 0.696538698160046,
+    "Symmetry (8D)": 0.7326727369288222,
+    "Combined (9D)": 0.7145872364928769
+  },
+  "trial_counts": {
+    "Raw (4D)": 60,
+    "Boundary distance (5D)": 60,
+    "Symmetry (8D)": 60,
+    "Combined (9D)": 60
+  }
+}

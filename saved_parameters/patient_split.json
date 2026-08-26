@@ -1,0 +1,2604 @@
+{
+  "split_version": "central_slice_size_and_order_stratified_v1",
+  "seed": 42,
+  "slice_num": 80,
+  "stratification": "central-slice tumor-size group + patient-index quartile",
+  "clinic_note": "The HDF5 files do not contain clinic identifiers. Patient-index quartiles are balanced to prevent ordered source blocks from being isolated, but this is not a substitute for true clinic metadata.",
+  "tumor_size_cutoffs_pixels": [
+    836.75,
+    1751.0,
+    2836.75
+  ],
+  "split_id": "7abfb7c10f61",
+  "train": [
+    201,
+    167,
+    298,
+    113,
+    43,
+    291,
+    233,
+    358,
+    146,
+    130,
+    365,
+    316,
+    190,
+    177,
+    192,
+    309,
+    162,
+    111,
+    74,
+    80,
+    19,
+    118,
+    225,
+    132,
+    247,
+    218,
+    85,
+    123,
+    284,
+    211,
+    179,
+    144,
+    38,
+    54,
+    45,
+    161,
+    205,
+    56,
+    245,
+    191,
+    151,
+    346,
+    91,
+    120,
+    127,
+    66,
+    221,
+    187,
+    13,
+    92,
+    198,
+    363,
+    329,
+    185,
+    231,
+    65,
+    331,
+    33,
+    41,
+    196,
+    1,
+    302,
+    47,
+    227,
+    199,
+    327,
+    364,
+    189,
+    20,
+    319,
+    6,
+    135,
+    342,
+    293,
+    114,
+    21,
+    108,
+    222,
+    128,
+    121,
+    119,
+    269,
+    53,
+    204,
+    214,
+    283,
+    131,
+    176,
+    63,
+    356,
+    87,
+    137,
+    46,
+    355,
+    325,
+    96,
+    236,
+    206,
+    37,
+    159,
+    79,
+    273,
+    145,
+    124,
+    252,
+    106,
+    30,
+    341,
+    27,
+    170,
+    318,
+    112,
+    158,
+    89,
+    26,
+    246,
+    323,
+    264,
+    259,
+    324,
+    76,
+    99,
+    315,
+    4,
+    295,
+    184,
+    15,
+    166,
+    153,
+    52,
+    290,
+    228,
+    129,
+    234,
+    125,
+    154,
+    94,
+    366,
+    312,
+    138,
+    303,
+    335,
+    351,
+    317,
+    367,
+    239,
+    255,
+    345,
+    334,
+    306,
+    62,
+    368,
+    277,
+    337,
+    226,
+    352,
+    223,
+    174,
+    31,
+    349,
+    172,
+    107,
+    241,
+    84,
+    263,
+    69,
+    237,
+    359,
+    143,
+    173,
+    10,
+    282,
+    188,
+    7,
+    32,
+    36,
+    34,
+    68,
+    39,
+    109,
+    157,
+    244,
+    11,
+    311,
+    60,
+    155,
+    5,
+    3,
+    336,
+    235,
+    160,
+    101,
+    248,
+    213,
+    278,
+    321,
+    272,
+    149,
+    338,
+    249,
+    77,
+    242,
+    322,
+    81,
+    116,
+    276,
+    193,
+    8,
+    238,
+    260,
+    361,
+    210,
+    24,
+    301,
+    133,
+    168,
+    195,
+    58,
+    44,
+    270,
+    64,
+    147,
+    286,
+    48,
+    294,
+    354,
+    207,
+    266,
+    369,
+    232,
+    164,
+    203,
+    310,
+    275,
+    348,
+    72,
+    169,
+    326,
+    256,
+    61,
+    274,
+    139,
+    156,
+    299,
+    330,
+    251,
+    93,
+    57,
+    340,
+    90
+  ],
+  "validation": [
+    288,
+    102,
+    14,
+    313,
+    16,
+    49,
+    307,
+    18,
+    95,
+    271,
+    134,
+    115,
+    35,
+    178,
+    59,
+    353,
+    171,
+    100,
+    339,
+    305,
+    42,
+    175,
+    194,
+    181,
+    73,
+    350,
+    70,
+    40,
+    104,
+    267,
+    281,
+    292,
+    86,
+    208,
+    265,
+    332,
+    9,
+    328,
+    2,
+    250,
+    217,
+    280,
+    297,
+    268,
+    142,
+    186,
+    261,
+    262,
+    224,
+    117
+  ],
+  "test": [
+    243,
+    75,
+    163,
+    347,
+    97,
+    50,
+    300,
+    183,
+    289,
+    152,
+    343,
+    197,
+    219,
+    136,
+    200,
+    83,
+    304,
+    165,
+    82,
+    308,
+    150,
+    141,
+    29,
+    229,
+    67,
+    17,
+    212,
+    257,
+    25,
+    360,
+    12,
+    216,
+    88,
+    51,
+    279,
+    240,
+    215,
+    314,
+    55,
+    254,
+    202,
+    98,
+    253,
+    28,
+    148,
+    122,
+    103,
+    344,
+    320,
+    23,
+    285,
+    357,
+    258,
+    78,
+    71,
+    182,
+    287,
+    230,
+    110,
+    333,
+    180,
+    220,
+    296,
+    362,
+    209,
+    22,
+    105,
+    126,
+    140
+  ],
+  "patients": [
+    {
+      "volume": 1,
+      "tumor_pixels": 4217,
+      "tumor_size_group": "very large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 2,
+      "tumor_pixels": 143,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 3,
+      "tumor_pixels": 678,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 4,
+      "tumor_pixels": 2536,
+      "tumor_size_group": "large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 5,
+      "tumor_pixels": 24,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 6,
+      "tumor_pixels": 2591,
+      "tumor_size_group": "large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 7,
+      "tumor_pixels": 235,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 8,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 0
+    },
+    {
+      "volume": 9,
+      "tumor_pixels": 2970,
+      "tumor_size_group": "very large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 10,
+      "tumor_pixels": 1221,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 11,
+      "tumor_pixels": 1120,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 12,
+      "tumor_pixels": 347,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 13,
+      "tumor_pixels": 1587,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 14,
+      "tumor_pixels": 621,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 15,
+      "tumor_pixels": 2764,
+      "tumor_size_group": "large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 16,
+      "tumor_pixels": 1992,
+      "tumor_size_group": "large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 17,
+      "tumor_pixels": 2254,
+      "tumor_size_group": "large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 18,
+      "tumor_pixels": 1666,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 19,
+      "tumor_pixels": 107,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 20,
+      "tumor_pixels": 1231,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 21,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 0
+    },
+    {
+      "volume": 22,
+      "tumor_pixels": 779,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 23,
+      "tumor_pixels": 306,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 24,
+      "tumor_pixels": 1611,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 25,
+      "tumor_pixels": 196,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 26,
+      "tumor_pixels": 3169,
+      "tumor_size_group": "very large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 27,
+      "tumor_pixels": 1313,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 28,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 0
+    },
+    {
+      "volume": 29,
+      "tumor_pixels": 1424,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 30,
+      "tumor_pixels": 1536,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 31,
+      "tumor_pixels": 1327,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 32,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 0
+    },
+    {
+      "volume": 33,
+      "tumor_pixels": 1949,
+      "tumor_size_group": "large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 34,
+      "tumor_pixels": 629,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 35,
+      "tumor_pixels": 787,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 36,
+      "tumor_pixels": 512,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 37,
+      "tumor_pixels": 4008,
+      "tumor_size_group": "very large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 38,
+      "tumor_pixels": 1753,
+      "tumor_size_group": "large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 39,
+      "tumor_pixels": 1267,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 40,
+      "tumor_pixels": 2084,
+      "tumor_size_group": "large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 41,
+      "tumor_pixels": 1096,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 42,
+      "tumor_pixels": 1743,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 43,
+      "tumor_pixels": 43,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 44,
+      "tumor_pixels": 421,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 45,
+      "tumor_pixels": 2238,
+      "tumor_size_group": "large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 46,
+      "tumor_pixels": 13,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 47,
+      "tumor_pixels": 3481,
+      "tumor_size_group": "very large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 48,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 0
+    },
+    {
+      "volume": 49,
+      "tumor_pixels": 1688,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 50,
+      "tumor_pixels": 1240,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 51,
+      "tumor_pixels": 1395,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 52,
+      "tumor_pixels": 861,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 53,
+      "tumor_pixels": 2616,
+      "tumor_size_group": "large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 54,
+      "tumor_pixels": 1302,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 55,
+      "tumor_pixels": 2774,
+      "tumor_size_group": "large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 56,
+      "tumor_pixels": 593,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 57,
+      "tumor_pixels": 262,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 58,
+      "tumor_pixels": 1690,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 59,
+      "tumor_pixels": 158,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 60,
+      "tumor_pixels": 1356,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 61,
+      "tumor_pixels": 600,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 62,
+      "tumor_pixels": 2358,
+      "tumor_size_group": "large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 63,
+      "tumor_pixels": 502,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 64,
+      "tumor_pixels": 353,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 65,
+      "tumor_pixels": 481,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 66,
+      "tumor_pixels": 1223,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 67,
+      "tumor_pixels": 1976,
+      "tumor_size_group": "large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 68,
+      "tumor_pixels": 2052,
+      "tumor_size_group": "large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 69,
+      "tumor_pixels": 1567,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 70,
+      "tumor_pixels": 135,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 71,
+      "tumor_pixels": 2917,
+      "tumor_size_group": "very large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 72,
+      "tumor_pixels": 1777,
+      "tumor_size_group": "large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 73,
+      "tumor_pixels": 1702,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 74,
+      "tumor_pixels": 1558,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 75,
+      "tumor_pixels": 4100,
+      "tumor_size_group": "very large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 76,
+      "tumor_pixels": 438,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 77,
+      "tumor_pixels": 701,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 78,
+      "tumor_pixels": 255,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 79,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 0
+    },
+    {
+      "volume": 80,
+      "tumor_pixels": 383,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 81,
+      "tumor_pixels": 320,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 82,
+      "tumor_pixels": 70,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 83,
+      "tumor_pixels": 1130,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 84,
+      "tumor_pixels": 161,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 85,
+      "tumor_pixels": 484,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 86,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 0
+    },
+    {
+      "volume": 87,
+      "tumor_pixels": 661,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 88,
+      "tumor_pixels": 845,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 89,
+      "tumor_pixels": 196,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 90,
+      "tumor_pixels": 1089,
+      "tumor_size_group": "medium",
+      "order_quartile": 0
+    },
+    {
+      "volume": 91,
+      "tumor_pixels": 3592,
+      "tumor_size_group": "very large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 92,
+      "tumor_pixels": 819,
+      "tumor_size_group": "small",
+      "order_quartile": 0
+    },
+    {
+      "volume": 93,
+      "tumor_pixels": 2098,
+      "tumor_size_group": "large",
+      "order_quartile": 0
+    },
+    {
+      "volume": 94,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 1
+    },
+    {
+      "volume": 95,
+      "tumor_pixels": 1152,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 96,
+      "tumor_pixels": 1749,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 97,
+      "tumor_pixels": 2077,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 98,
+      "tumor_pixels": 1881,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 99,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 1
+    },
+    {
+      "volume": 100,
+      "tumor_pixels": 3019,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 101,
+      "tumor_pixels": 527,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 102,
+      "tumor_pixels": 40,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 103,
+      "tumor_pixels": 1430,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 104,
+      "tumor_pixels": 3031,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 105,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 1
+    },
+    {
+      "volume": 106,
+      "tumor_pixels": 2189,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 107,
+      "tumor_pixels": 834,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 108,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 1
+    },
+    {
+      "volume": 109,
+      "tumor_pixels": 2056,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 110,
+      "tumor_pixels": 30,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 111,
+      "tumor_pixels": 97,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 112,
+      "tumor_pixels": 2641,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 113,
+      "tumor_pixels": 2845,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 114,
+      "tumor_pixels": 1554,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 115,
+      "tumor_pixels": 438,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 116,
+      "tumor_pixels": 1605,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 117,
+      "tumor_pixels": 1765,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 118,
+      "tumor_pixels": 1168,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 119,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 1
+    },
+    {
+      "volume": 120,
+      "tumor_pixels": 1332,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 121,
+      "tumor_pixels": 3506,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 122,
+      "tumor_pixels": 727,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 123,
+      "tumor_pixels": 2744,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 124,
+      "tumor_pixels": 3986,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 125,
+      "tumor_pixels": 2242,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 126,
+      "tumor_pixels": 946,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 127,
+      "tumor_pixels": 645,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 128,
+      "tumor_pixels": 1076,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 129,
+      "tumor_pixels": 561,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 130,
+      "tumor_pixels": 1973,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 131,
+      "tumor_pixels": 1105,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 132,
+      "tumor_pixels": 3687,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 133,
+      "tumor_pixels": 2504,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 134,
+      "tumor_pixels": 1408,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 135,
+      "tumor_pixels": 3796,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 136,
+      "tumor_pixels": 574,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 137,
+      "tumor_pixels": 3439,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 138,
+      "tumor_pixels": 4358,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 139,
+      "tumor_pixels": 534,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 140,
+      "tumor_pixels": 608,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 141,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 1
+    },
+    {
+      "volume": 142,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 1
+    },
+    {
+      "volume": 143,
+      "tumor_pixels": 3495,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 144,
+      "tumor_pixels": 4424,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 145,
+      "tumor_pixels": 1380,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 146,
+      "tumor_pixels": 2086,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 147,
+      "tumor_pixels": 2977,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 148,
+      "tumor_pixels": 2097,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 149,
+      "tumor_pixels": 5001,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 150,
+      "tumor_pixels": 3409,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 151,
+      "tumor_pixels": 3066,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 152,
+      "tumor_pixels": 3502,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 153,
+      "tumor_pixels": 2238,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 154,
+      "tumor_pixels": 147,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 155,
+      "tumor_pixels": 2187,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 156,
+      "tumor_pixels": 2361,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 157,
+      "tumor_pixels": 189,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 158,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 1
+    },
+    {
+      "volume": 159,
+      "tumor_pixels": 675,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 160,
+      "tumor_pixels": 2432,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 161,
+      "tumor_pixels": 1272,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 162,
+      "tumor_pixels": 2628,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 163,
+      "tumor_pixels": 2933,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 164,
+      "tumor_pixels": 2106,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 165,
+      "tumor_pixels": 1872,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 166,
+      "tumor_pixels": 4135,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 167,
+      "tumor_pixels": 1161,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 168,
+      "tumor_pixels": 2728,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 169,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 1
+    },
+    {
+      "volume": 170,
+      "tumor_pixels": 597,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 171,
+      "tumor_pixels": 2641,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 172,
+      "tumor_pixels": 168,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 173,
+      "tumor_pixels": 2953,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 174,
+      "tumor_pixels": 1794,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 175,
+      "tumor_pixels": 4339,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 176,
+      "tumor_pixels": 821,
+      "tumor_size_group": "small",
+      "order_quartile": 1
+    },
+    {
+      "volume": 177,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 1
+    },
+    {
+      "volume": 178,
+      "tumor_pixels": 2253,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 179,
+      "tumor_pixels": 1423,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 180,
+      "tumor_pixels": 2625,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 181,
+      "tumor_pixels": 1509,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 182,
+      "tumor_pixels": 991,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 183,
+      "tumor_pixels": 3668,
+      "tumor_size_group": "very large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 184,
+      "tumor_pixels": 2377,
+      "tumor_size_group": "large",
+      "order_quartile": 1
+    },
+    {
+      "volume": 185,
+      "tumor_pixels": 864,
+      "tumor_size_group": "medium",
+      "order_quartile": 1
+    },
+    {
+      "volume": 186,
+      "tumor_pixels": 3077,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 187,
+      "tumor_pixels": 2228,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 188,
+      "tumor_pixels": 1315,
+      "tumor_size_group": "medium",
+      "order_quartile": 2
+    },
+    {
+      "volume": 189,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 2
+    },
+    {
+      "volume": 190,
+      "tumor_pixels": 1007,
+      "tumor_size_group": "medium",
+      "order_quartile": 2
+    },
+    {
+      "volume": 191,
+      "tumor_pixels": 3483,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 192,
+      "tumor_pixels": 1849,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 193,
+      "tumor_pixels": 2565,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 194,
+      "tumor_pixels": 1971,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 195,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 2
+    },
+    {
+      "volume": 196,
+      "tumor_pixels": 3330,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 197,
+      "tumor_pixels": 3071,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 198,
+      "tumor_pixels": 1462,
+      "tumor_size_group": "medium",
+      "order_quartile": 2
+    },
+    {
+      "volume": 199,
+      "tumor_pixels": 1329,
+      "tumor_size_group": "medium",
+      "order_quartile": 2
+    },
+    {
+      "volume": 200,
+      "tumor_pixels": 380,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 201,
+      "tumor_pixels": 3297,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 202,
+      "tumor_pixels": 1686,
+      "tumor_size_group": "medium",
+      "order_quartile": 2
+    },
+    {
+      "volume": 203,
+      "tumor_pixels": 1797,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 204,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 2
+    },
+    {
+      "volume": 205,
+      "tumor_pixels": 699,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 206,
+      "tumor_pixels": 294,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 207,
+      "tumor_pixels": 963,
+      "tumor_size_group": "medium",
+      "order_quartile": 2
+    },
+    {
+      "volume": 208,
+      "tumor_pixels": 3113,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 209,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 2
+    },
+    {
+      "volume": 210,
+      "tumor_pixels": 3977,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 211,
+      "tumor_pixels": 655,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 212,
+      "tumor_pixels": 2912,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 213,
+      "tumor_pixels": 46,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 214,
+      "tumor_pixels": 2269,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 215,
+      "tumor_pixels": 866,
+      "tumor_size_group": "medium",
+      "order_quartile": 2
+    },
+    {
+      "volume": 216,
+      "tumor_pixels": 1997,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 217,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 2
+    },
+    {
+      "volume": 218,
+      "tumor_pixels": 1948,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 219,
+      "tumor_pixels": 1613,
+      "tumor_size_group": "medium",
+      "order_quartile": 2
+    },
+    {
+      "volume": 220,
+      "tumor_pixels": 2595,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 221,
+      "tumor_pixels": 3217,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 222,
+      "tumor_pixels": 31,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 223,
+      "tumor_pixels": 3277,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 224,
+      "tumor_pixels": 3372,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 225,
+      "tumor_pixels": 3488,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 226,
+      "tumor_pixels": 47,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 227,
+      "tumor_pixels": 150,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 228,
+      "tumor_pixels": 1033,
+      "tumor_size_group": "medium",
+      "order_quartile": 2
+    },
+    {
+      "volume": 229,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 2
+    },
+    {
+      "volume": 230,
+      "tumor_pixels": 665,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 231,
+      "tumor_pixels": 2654,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 232,
+      "tumor_pixels": 1607,
+      "tumor_size_group": "medium",
+      "order_quartile": 2
+    },
+    {
+      "volume": 233,
+      "tumor_pixels": 484,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 234,
+      "tumor_pixels": 3077,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 235,
+      "tumor_pixels": 4186,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 236,
+      "tumor_pixels": 2593,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 237,
+      "tumor_pixels": 3949,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 238,
+      "tumor_pixels": 3421,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 239,
+      "tumor_pixels": 1134,
+      "tumor_size_group": "medium",
+      "order_quartile": 2
+    },
+    {
+      "volume": 240,
+      "tumor_pixels": 3404,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 241,
+      "tumor_pixels": 4059,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 242,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 2
+    },
+    {
+      "volume": 243,
+      "tumor_pixels": 2434,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 244,
+      "tumor_pixels": 2812,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 245,
+      "tumor_pixels": 2348,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 246,
+      "tumor_pixels": 1497,
+      "tumor_size_group": "medium",
+      "order_quartile": 2
+    },
+    {
+      "volume": 247,
+      "tumor_pixels": 2686,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 248,
+      "tumor_pixels": 1894,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 249,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 2
+    },
+    {
+      "volume": 250,
+      "tumor_pixels": 276,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 251,
+      "tumor_pixels": 2170,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 252,
+      "tumor_pixels": 4408,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 253,
+      "tumor_pixels": 524,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 254,
+      "tumor_pixels": 3215,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 255,
+      "tumor_pixels": 2931,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 256,
+      "tumor_pixels": 4042,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 257,
+      "tumor_pixels": 2217,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 258,
+      "tumor_pixels": 3090,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 259,
+      "tumor_pixels": 1810,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 260,
+      "tumor_pixels": 464,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 261,
+      "tumor_pixels": 5127,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 262,
+      "tumor_pixels": 1844,
+      "tumor_size_group": "large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 263,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 2
+    },
+    {
+      "volume": 264,
+      "tumor_pixels": 991,
+      "tumor_size_group": "medium",
+      "order_quartile": 2
+    },
+    {
+      "volume": 265,
+      "tumor_pixels": 1650,
+      "tumor_size_group": "medium",
+      "order_quartile": 2
+    },
+    {
+      "volume": 266,
+      "tumor_pixels": 347,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 267,
+      "tumor_pixels": 413,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 268,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 2
+    },
+    {
+      "volume": 269,
+      "tumor_pixels": 951,
+      "tumor_size_group": "medium",
+      "order_quartile": 2
+    },
+    {
+      "volume": 270,
+      "tumor_pixels": 3238,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 271,
+      "tumor_pixels": 1376,
+      "tumor_size_group": "medium",
+      "order_quartile": 2
+    },
+    {
+      "volume": 272,
+      "tumor_pixels": 3691,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 273,
+      "tumor_pixels": 3960,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 274,
+      "tumor_pixels": 3589,
+      "tumor_size_group": "very large",
+      "order_quartile": 2
+    },
+    {
+      "volume": 275,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 2
+    },
+    {
+      "volume": 276,
+      "tumor_pixels": 502,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 277,
+      "tumor_pixels": 826,
+      "tumor_size_group": "small",
+      "order_quartile": 2
+    },
+    {
+      "volume": 278,
+      "tumor_pixels": 2335,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 279,
+      "tumor_pixels": 3205,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 280,
+      "tumor_pixels": 1396,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 281,
+      "tumor_pixels": 2654,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 282,
+      "tumor_pixels": 1440,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 283,
+      "tumor_pixels": 14,
+      "tumor_size_group": "small",
+      "order_quartile": 3
+    },
+    {
+      "volume": 284,
+      "tumor_pixels": 4273,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 285,
+      "tumor_pixels": 2611,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 286,
+      "tumor_pixels": 726,
+      "tumor_size_group": "small",
+      "order_quartile": 3
+    },
+    {
+      "volume": 287,
+      "tumor_pixels": 3,
+      "tumor_size_group": "small",
+      "order_quartile": 3
+    },
+    {
+      "volume": 288,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 3
+    },
+    {
+      "volume": 289,
+      "tumor_pixels": 3432,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 290,
+      "tumor_pixels": 4046,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 291,
+      "tumor_pixels": 3962,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 292,
+      "tumor_pixels": 100,
+      "tumor_size_group": "small",
+      "order_quartile": 3
+    },
+    {
+      "volume": 293,
+      "tumor_pixels": 6123,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 294,
+      "tumor_pixels": 213,
+      "tumor_size_group": "small",
+      "order_quartile": 3
+    },
+    {
+      "volume": 295,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 3
+    },
+    {
+      "volume": 296,
+      "tumor_pixels": 2710,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 297,
+      "tumor_pixels": 1688,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 298,
+      "tumor_pixels": 1460,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 299,
+      "tumor_pixels": 2656,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 300,
+      "tumor_pixels": 1266,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 301,
+      "tumor_pixels": 2307,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 302,
+      "tumor_pixels": 1694,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 303,
+      "tumor_pixels": 146,
+      "tumor_size_group": "small",
+      "order_quartile": 3
+    },
+    {
+      "volume": 304,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 3
+    },
+    {
+      "volume": 305,
+      "tumor_pixels": 1479,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 306,
+      "tumor_pixels": 1254,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 307,
+      "tumor_pixels": 3206,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 308,
+      "tumor_pixels": 3958,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 309,
+      "tumor_pixels": 1837,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 310,
+      "tumor_pixels": 3576,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 311,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 3
+    },
+    {
+      "volume": 312,
+      "tumor_pixels": 3105,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 313,
+      "tumor_pixels": 2495,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 314,
+      "tumor_pixels": 832,
+      "tumor_size_group": "small",
+      "order_quartile": 3
+    },
+    {
+      "volume": 315,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 3
+    },
+    {
+      "volume": 316,
+      "tumor_pixels": 4450,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 317,
+      "tumor_pixels": 750,
+      "tumor_size_group": "small",
+      "order_quartile": 3
+    },
+    {
+      "volume": 318,
+      "tumor_pixels": 4952,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 319,
+      "tumor_pixels": 3059,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 320,
+      "tumor_pixels": 895,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 321,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 3
+    },
+    {
+      "volume": 322,
+      "tumor_pixels": 117,
+      "tumor_size_group": "small",
+      "order_quartile": 3
+    },
+    {
+      "volume": 323,
+      "tumor_pixels": 4130,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 324,
+      "tumor_pixels": 1293,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 325,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 3
+    },
+    {
+      "volume": 326,
+      "tumor_pixels": 1915,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 327,
+      "tumor_pixels": 4171,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 328,
+      "tumor_pixels": 6175,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 329,
+      "tumor_pixels": 813,
+      "tumor_size_group": "small",
+      "order_quartile": 3
+    },
+    {
+      "volume": 330,
+      "tumor_pixels": 733,
+      "tumor_size_group": "small",
+      "order_quartile": 3
+    },
+    {
+      "volume": 331,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 3
+    },
+    {
+      "volume": 332,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 3
+    },
+    {
+      "volume": 333,
+      "tumor_pixels": 3756,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 334,
+      "tumor_pixels": 3088,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 335,
+      "tumor_pixels": 2685,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 336,
+      "tumor_pixels": 2207,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 337,
+      "tumor_pixels": 2136,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 338,
+      "tumor_pixels": 3799,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 339,
+      "tumor_pixels": 3086,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 340,
+      "tumor_pixels": 1831,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 341,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 3
+    },
+    {
+      "volume": 342,
+      "tumor_pixels": 3415,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 343,
+      "tumor_pixels": 2486,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 344,
+      "tumor_pixels": 1412,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 345,
+      "tumor_pixels": 1298,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 346,
+      "tumor_pixels": 1155,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 347,
+      "tumor_pixels": 1143,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 348,
+      "tumor_pixels": 1697,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 349,
+      "tumor_pixels": 4252,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 350,
+      "tumor_pixels": 1914,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 351,
+      "tumor_pixels": 1987,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 352,
+      "tumor_pixels": 889,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 353,
+      "tumor_pixels": 4,
+      "tumor_size_group": "small",
+      "order_quartile": 3
+    },
+    {
+      "volume": 354,
+      "tumor_pixels": 3589,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 355,
+      "tumor_pixels": 1063,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 356,
+      "tumor_pixels": 1012,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 357,
+      "tumor_pixels": 1858,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 358,
+      "tumor_pixels": 2226,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 359,
+      "tumor_pixels": 2157,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 360,
+      "tumor_pixels": 0,
+      "tumor_size_group": "no tumor",
+      "order_quartile": 3
+    },
+    {
+      "volume": 361,
+      "tumor_pixels": 1336,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 362,
+      "tumor_pixels": 3183,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 363,
+      "tumor_pixels": 2684,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 364,
+      "tumor_pixels": 800,
+      "tumor_size_group": "small",
+      "order_quartile": 3
+    },
+    {
+      "volume": 365,
+      "tumor_pixels": 3654,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 366,
+      "tumor_pixels": 1334,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 367,
+      "tumor_pixels": 2275,
+      "tumor_size_group": "large",
+      "order_quartile": 3
+    },
+    {
+      "volume": 368,
+      "tumor_pixels": 1649,
+      "tumor_size_group": "medium",
+      "order_quartile": 3
+    },
+    {
+      "volume": 369,
+      "tumor_pixels": 3423,
+      "tumor_size_group": "very large",
+      "order_quartile": 3
+    }
+  ]
+}

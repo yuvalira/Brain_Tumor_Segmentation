@@ -1,0 +1,5 @@
+Model,Missed tumor count,Missed tumor volumes,Empty-slice FP count,False-positive volumes
+Raw (4D),10,"[300, 219, 82, 308, 150, 202, 23, 78, 287, 110]",2,"[360, 28]"
+Boundary distance (5D),9,"[300, 82, 308, 257, 23, 78, 287, 110, 333]",2,"[360, 28]"
+Symmetry (8D),6,"[82, 257, 279, 23, 287, 110]",1,[28]
+Combined (9D),4,"[197, 279, 287, 110]",2,"[360, 28]"
